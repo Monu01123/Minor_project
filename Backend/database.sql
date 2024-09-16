@@ -1,4 +1,3 @@
-
 DROP DATABASE IF EXISTS elearning;
 create database elearning;
 use elearning;
@@ -181,6 +180,15 @@ VALUES
     (3, 'Introduction to Data Science', 'video', 'https://example.com/data_intro.mp4', NULL, 900, 1, NOW(), NOW()),
     (4, 'AI Concepts Overview', 'video', 'https://example.com/ai_overview.mp4', NULL, 1000, 1, NOW(), NOW());
 
+INSERT INTO course_content (course_id, title, content_type, content_url, content_text, duration, content_order, created_at, updated_at)
+VALUES 
+    (5, 'Introduction to Graphic Design', 'video', 'https://example.com/graphicdesign_intro.mp4', NULL, 700, 1, NOW(), NOW()),
+    (5, 'Design Principles', 'video', 'https://example.com/design_principles.mp4', NULL, 800, 2, NOW(), NOW()),
+    (6, 'Cybersecurity Fundamentals', 'video', 'https://example.com/cybersecurity_fundamentals.mp4', NULL, 900, 1, NOW(), NOW()),
+    (6, 'Threat Analysis and Prevention', 'video', 'https://example.com/threat_analysis.mp4', NULL, 1000, 2, NOW(), NOW()),
+    (7, 'Digital Marketing Basics', 'video', 'https://example.com/digitalmarketing_basics.mp4', NULL, 650, 1, NOW(), NOW()),
+    (7, 'SEO Strategies', 'video', 'https://example.com/seo_strategies.mp4', NULL, 700, 2, NOW(), NOW());
+
 -- Insert dummy data into enrollments
 INSERT INTO enrollments (user_id, course_id, enrolled_at, progress)
 VALUES 
@@ -197,6 +205,13 @@ VALUES
     (5, 2, 4, 'Great content but could use more examples.', NOW()),
     (6, 3, 5, 'Highly recommended for data science enthusiasts.', NOW()),
     (7, 4, 4, 'Informative, but needs more practical exercises.', NOW());
+    
+INSERT INTO reviews (user_id, course_id, rating, comment, created_at)
+VALUES 
+    (5, 5, 5, 'Amazing course for learning graphic design techniques!', NOW()),
+    (6, 6, 4, 'Good introduction to cybersecurity, but could be more in-depth.', NOW()),
+    (7, 7, 5, 'Fantastic insights into digital marketing strategies!', NOW());
+
 
 -- Insert dummy data into wishlist
 INSERT INTO wishlist (user_id, course_id, added_at)
