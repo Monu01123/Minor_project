@@ -48,7 +48,7 @@ const Category = () => {
             <button
               onClick={() => handleCategoryClick(category.id)}
               className={`m-1 p-2 rounded-lg font-sans text-sm font-bold ${
-                activeCategoryId === category.id ? 'bg-red-500 text-white' : 'bg-gray-200 text-black hover:bg-gray-300'
+                activeCategoryId === category.id ? 'bg-[#2D2F31] text-white' : 'bg-gray-200 text-black hover:bg-gray-300'
               }`}
             >
               {category.name}

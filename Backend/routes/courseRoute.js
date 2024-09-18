@@ -4,7 +4,8 @@ import {
   getCourses,
   getCourseById,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  getCoursesByCategory
 } from '../Controllers/courseController.js';
 
 const router = express.Router();
@@ -24,4 +25,5 @@ router.put('/courses/:courseId', updateCourse);
 // Route to delete a course by ID
 router.delete('/courses/:courseId', deleteCourse);
 
+router.get('/courses/category/:categoryId', getCoursesByCategory);
 export default router;

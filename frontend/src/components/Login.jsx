@@ -5,6 +5,7 @@ import logo from '../assets/flogo.png';
 import loginPhoto from '../assets/loginphoto4.jpg';
 import { useDispatch } from 'react-redux';
 import { toggleLoginPage } from '../utils/slices/appSlice';
+import { loginSuccess } from '../utils/slices/userSlice';  // Import loginSuccess action
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -32,9 +33,11 @@ const Login = () => {
         password,
       });
 
-      // Assuming the API response has a status indicating success
+      // If login is successful, dispatch loginSuccess action
       if (response.status === 200) {
-        navigate('/'); // Redirect to home page
+        const username = response.data.username;  // Adjust according to your response structure
+        dispatch(loginSuccess({ username }));
+        navigate('/');  // Redirect to home page
       }
     } catch (error) {
       setErrorMessage(
@@ -46,17 +49,17 @@ const Login = () => {
   return (
     <div className='flex p-4'>
       <div className='w-2/4'>
-        <img src={loginPhoto} className='w-full' alt="" />
+        <img src={loginPhoto} className='w-full h-[380px]' alt="Login" />
       </div>
       <div className='w-full'>
         <div className="flex flex-col justify-center items-center bg-gradient-to-r from-blue-700 to-gray-900 p-2">
           <div className='flex'>
-            <img src={logo} alt="Study With Me Logo" className="w-40 mb-2 " />
-            <Link to='/'>
+            <img src={logo} alt="Study With Me Logo" className="w-40 mb-2" />
+            {/* <Link to='/'>
               <button className="text-black text-xl rounded-full p-1 relative left-64 cursor-pointer">
                 ❌
               </button>
-            </Link>
+            </Link> */}
           </div>
           <div className="bg-white shadow-2xl rounded-lg p-4 max-w-md w-full flex flex-col justify-between">
             <div>

@@ -89,3 +89,24 @@ export const deleteCourse = async (req, res) => {
     res.status(500).json({ message: 'Error deleting course' });
   }
 };
+
+// Get all courses by category ID
+export const getCoursesByCategory = async (req, res) => {
+  const { categoryId } = req.params;
+
+  try {
+    const [rows] = await promisePool.query(
+      `SELECT * FROM courses WHERE category_id = ?`,
+      [categoryId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'No courses found for this category' });
+    }
+
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching courses by category' });
+  }
+};

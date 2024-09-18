@@ -6,8 +6,7 @@ import Body from './Body';
 import Login from './Login';
 import SignUp from './SignUp';
 import AsliAppLayout from './AsliAppLayout';
-import CourseContainer from './CourseContainer'; // Add this component
-import herobg from '../assets/herobg4.jpg';
+import CourseContainer from './CourseContainer';
 import ContentPage from './ContentPage';
 
 const AppLayout = () => {
@@ -30,7 +29,7 @@ const AppLayout = () => {
 
   return (
     <Provider store={store}>
-      <div className='font-serif h-screen box-border bg-cover bg-repeat' style={{ backgroundImage: `url(${herobg})` }}>
+      <div className='font-serif h-screen box-border bg-gray-100'>
         <RouterProvider router={appRouter} />
       </div>
     </Provider>

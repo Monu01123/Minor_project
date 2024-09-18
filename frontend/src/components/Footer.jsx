@@ -3,13 +3,10 @@ import { FaFacebook, FaTwitter, FaLinkedin, FaReddit } from 'react-icons/fa'; //
 
 const Footer = () => {
   return (
-    <footer className="bg-[#002326] text-white py-6">
+    <footer className="bg-[#002326] text-white py-6 mx-auto">
       <div className="container mx-auto">
-        {/* Top Row: Logo and Social Icons */}
         <div className="flex justify-between items-center mb-6">
-          {/* Website Logo */}
           <div className="text-3xl font-bold">Study With Me</div>
-          {/* Social Media Icons */}
           <div className="flex space-x-4">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
               <FaFacebook className="text-2xl hover:text-blue-500" />
