@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { FaShoppingCart } from 'react-icons/fa'; // Import the cart icon
 import logo from '../assets/flogo.png';
 import searchIcon from '../assets/search2.png';
-import cartImage from '../assets/cart.png';
 import userImg from '../assets/userImg.png';
 import globe from '../assets/globe.png';
 
@@ -24,7 +24,8 @@ const Header = () => {
         <img src={searchIcon} className='bg-white w-8 h-9 p-2 rounded-r-xl' alt="Search Icon" />
       </div>
       <div>
-        <img src={cartImage} className='w-8 mx-12' alt="Cart Icon" />
+        {/* Use Font Awesome cart icon */}
+        <FaShoppingCart className='text-white w-6 h-6 mx-12' alt="Cart Icon" />
       </div>
       <div className='flex space-x-2'>
         {

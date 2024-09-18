@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import logo from '../assets/logo.avif';
+import logo from '../assets/flogo.png';
 import loginPhoto from '../assets/loginphoto4.jpg';
 import { useDispatch } from 'react-redux';
 import { toggleLoginPage } from '../utils/slices/appSlice';

@@ -78,17 +78,18 @@ const ContentPage = () => {
    
       {/* User Reviews Section */}
       <div className=' p-4 bg-gray-100 flex border border-black mx-1'>
-  <div className='w-max'>
+  <div className='w-max rounded-lg'>
     <h2 className='text-3xl font-bold mb-6 text-blue-600 border-b pb-2'>User Reviews</h2>
+    <div className='flex flex-wrap'>
     {reviews.length > 0 ? (
       reviews.map(review => (
         <div 
           key={review.review_id} 
-          className='p-6 mb-6 bg-white shadow-lg rounded-md'>
+          className='p-6 mb-6 mx-2 bg-white shadow-lg rounded-md'>
           <div className='flex items-center mb-3'>
             {/* Placeholder user logo */}
             <div className='bg-gray-400 rounded-full w-10 h-10 flex items-center justify-center text-white mr-3'>
-              U
+             {review.user_name[0].toUpperCase()}
             </div>
             <h3 className='font-semibold'>{review.user_name}</h3>
           </div>
@@ -118,6 +119,7 @@ const ContentPage = () => {
     ) : (
       <p>No reviews yet. Be the first to review this course!</p>
     )}
+    </div>
   </div>
 </div>
 

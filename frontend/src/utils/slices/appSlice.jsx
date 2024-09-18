@@ -7,10 +7,10 @@ const appSlice = createSlice({
         signUpPage : false,
     },
     reducers : {
-        toggleLoginPage : (state,action)=>{
+        toggleLoginPage : (state)=>{
             state.loginPage = !state.loginPage;
         },
-        toggleSignUpPage : (state,action)=>{
+        toggleSignUpPage : (state)=>{
             state.signUpPage = !state.signUpPage;
         },
     },
