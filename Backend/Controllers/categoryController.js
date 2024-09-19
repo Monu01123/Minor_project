@@ -57,7 +57,6 @@ export const updateCategory = async (req, res) => {
 export const deleteCategory = async (req, res) => {
   const { id } = req.params;
 
-  // Validate that the ID is provided
   if (!id) {
     return res.status(400).json({ error: "Category ID is required" });
   }

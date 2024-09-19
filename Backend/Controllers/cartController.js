@@ -5,7 +5,6 @@ export const addToCart = async (req, res) => {
     const { user_id, course_id } = req.body;
 
     try {
-        // Check if the user already has a cart, if not create one
         let [cart] = await promisePool.query(`SELECT * FROM cart WHERE user_id = ?`, [user_id]);
 
         if (cart.length === 0) {
@@ -15,7 +14,6 @@ export const addToCart = async (req, res) => {
 
         const cart_id = cart[0].cart_id;
 
-        // Check if the course is already in the cart
         const [existingCartItem] = await promisePool.query(
             `SELECT * FROM cart_items WHERE cart_id = ? AND course_id = ?`,
             [cart_id, course_id]
@@ -25,7 +23,6 @@ export const addToCart = async (req, res) => {
             return res.status(400).json({ message: 'Course is already in the cart' });
         }
 
-        // Add the course to the cart
         await promisePool.query(
             `INSERT INTO cart_items (cart_id, course_id) VALUES (?, ?)`,
             [cart_id, course_id]
@@ -38,7 +35,6 @@ export const addToCart = async (req, res) => {
     }
 };
 
-// Get the contents of the cart for a user
 export const getCartByUserId = async (req, res) => {
     const { userId } = req.params;
 
@@ -84,7 +80,6 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
-// Clear the entire cart
 export const clearCart = async (req, res) => {
     const { userId } = req.params;
 

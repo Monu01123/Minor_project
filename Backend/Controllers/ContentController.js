@@ -1,6 +1,6 @@
-import { promisePool } from '../db.js'; // Using promise-based pool from mysql2
+import { promisePool } from '../db.js'; 
 
-// Add new course content
+
 export const addCourseContent = async (req, res) => {
   const { course_id, title, content_type, content_url, content_text, duration, content_order } = req.body;
 
@@ -21,7 +21,6 @@ export const addCourseContent = async (req, res) => {
   }
 };
 
-// Get course content by course ID
 export const getCourseContentByCourseId = async (req, res) => {
   const { courseId } = req.params;
 
@@ -42,7 +41,6 @@ export const getCourseContentByCourseId = async (req, res) => {
   }
 };
 
-// Update course content by content ID
 export const updateCourseContent = async (req, res) => {
   const { contentId } = req.params;
   const { title, content_type, content_url, content_text, duration, content_order } = req.body;
@@ -65,7 +63,6 @@ export const updateCourseContent = async (req, res) => {
   }
 };
 
-// Delete course content by content ID
 export const deleteCourseContent = async (req, res) => {
   const { contentId } = req.params;
 

@@ -1,6 +1,5 @@
 import { promisePool } from '../db.js'; // Assuming you are using promise-based pool from mysql2
 
-// Create a new course
 export const createCourse = async (req, res) => {
   try {
     const { title, description, price, discount_price, image_url, category_id, instructor_id, level, language } = req.body;
@@ -21,7 +20,6 @@ export const createCourse = async (req, res) => {
   }
 };
 
-// Get all courses
 export const getCourses = async (req, res) => {
   try {
     const [rows] = await promisePool.query(`SELECT * FROM courses`);
@@ -32,7 +30,6 @@ export const getCourses = async (req, res) => {
   }
 };
 
-// Get a specific course by ID
 export const getCourseById = async (req, res) => {
   const { courseId } = req.params;
   try {
@@ -49,7 +46,6 @@ export const getCourseById = async (req, res) => {
   }
 };
 
-// Update a course by ID
 export const updateCourse = async (req, res) => {
   const { courseId } = req.params;
   const { title, description, price, discount_price, image_url, category_id, instructor_id, level, language, status } = req.body;
@@ -72,7 +68,6 @@ export const updateCourse = async (req, res) => {
   }
 };
 
-// Delete a course by ID
 export const deleteCourse = async (req, res) => {
   const { courseId } = req.params;
 
@@ -90,7 +85,6 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
-// Get all courses by category ID
 export const getCoursesByCategory = async (req, res) => {
   const { categoryId } = req.params;
 

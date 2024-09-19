@@ -5,7 +5,6 @@ export const createReview = async (req, res) => {
   const { user_id, course_id, rating, comment } = req.body;
 
   try {
-    // Insert a new review
     const [result] = await promisePool.query(
       `INSERT INTO reviews (user_id, course_id, rating, comment) VALUES (?, ?, ?, ?)`,
       [user_id, course_id, rating, comment]
@@ -21,7 +20,6 @@ export const createReview = async (req, res) => {
   }
 };
 
-// Get all reviews for a course
 export const getReviewsByCourseId = async (req, res) => {
   const { courseId } = req.params;
 
@@ -45,7 +43,6 @@ export const getReviewsByCourseId = async (req, res) => {
   }
 };
 
-// Update a review
 export const updateReview = async (req, res) => {
   const { reviewId } = req.params;
   const { rating, comment } = req.body;

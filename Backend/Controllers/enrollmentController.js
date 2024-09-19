@@ -1,6 +1,6 @@
 import { promisePool } from '../db.js'; // Using promise-based pool from mysql2
 
-// Enroll a user in a course
+
 export const enrollUserInCourse = async (req, res) => {
   const { user_id, course_id } = req.body;
 
@@ -29,7 +29,6 @@ export const enrollUserInCourse = async (req, res) => {
   }
 };
 
-// Get all enrollments for a user
 export const getEnrollmentsByUserId = async (req, res) => {
   const { userId } = req.params;
 
@@ -53,7 +52,6 @@ export const getEnrollmentsByUserId = async (req, res) => {
   }
 };
 
-// Update enrollment progress
 export const updateEnrollmentProgress = async (req, res) => {
   const { enrollmentId } = req.params;
   const { progress } = req.body;
@@ -75,7 +73,6 @@ export const updateEnrollmentProgress = async (req, res) => {
   }
 };
 
-// Delete an enrollment (unenroll)
 export const deleteEnrollment = async (req, res) => {
   const { enrollmentId } = req.params;
 
