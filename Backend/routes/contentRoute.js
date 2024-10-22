@@ -1,23 +1,43 @@
-import express from 'express';
+import express from "express";
 import {
   addCourseContent,
   getCourseContentByCourseId,
   updateCourseContent,
-  deleteCourseContent
-} from '../Controllers/contentController.js';
+  deleteCourseContent,
+  getCourseContentByCourseIdsecure,
+} from "../Controllers/ContentController.js";
+import { authenticateToken } from "../middleware/authenticateToken.js";
+import { instructorOnly } from "../middleware/InstructorMiddleware.js"; // Middleware for instructors
+// import { adminOnly } from '../middleware/adminMiddleware.js';           // Middleware for admins
 
 const router = express.Router();
 
-// Route to add new course content
-router.post('/content', addCourseContent);
+router.post("/content", authenticateToken, instructorOnly, addCourseContent);
 
-// Route to get all content of a course by course ID
-router.get('/content/:courseId', getCourseContentByCourseId);
+router.get(
+  "/content/:courseId",
+  // authenticateToken,
+  getCourseContentByCourseId
+);
 
-// Route to update course content by content ID
-router.put('/content/:contentId', updateCourseContent);
+router.get(
+  "/content/enrolled/:courseId",
+  // authenticateToken,
+  getCourseContentByCourseIdsecure
+);
 
-// Route to delete course content by content ID
-router.delete('/content/:contentId', deleteCourseContent);
+router.put(
+  "/content/:contentId",
+  authenticateToken,
+  instructorOnly,
+  updateCourseContent
+);
+
+router.delete(
+  "/content/:contentId",
+  authenticateToken,
+  instructorOnly,
+  deleteCourseContent
+);
 
 export default router;

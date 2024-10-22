@@ -3,21 +3,28 @@ import {
   enrollUserInCourse,
   getEnrollmentsByUserId,
   updateEnrollmentProgress,
-  deleteEnrollment
+  deleteEnrollment,
+  getEnrollmentCountByCourseId
 } from '../Controllers/enrollmentController.js';
+import { authenticateToken } from '../middleware/authenticateToken.js';  // To verify user token
+import { adminOnly } from '../middleware/adminMiddleware.js';            // For admin-specific actions (if needed)
+import { enrolledUserOnly } from '../middleware/enrolledUserMiddleware.js'; // To restrict certain actions to the enrolled user
 
 const router = express.Router();
 
-// Route to enroll a user in a course
-router.post('/enrollments', enrollUserInCourse);
+// Only authenticated users can enroll in a course
+router.post('/enrollments',authenticateToken, enrollUserInCourse);
 
-// Route to get all enrollments for a specific user
-router.get('/enrollments/user/:userId', getEnrollmentsByUserId);
+// Only authenticated users can view their enrollments
+router.get('/enrollments/user/:userId',authenticateToken,enrolledUserOnly, getEnrollmentsByUserId);
 
-// Route to update enrollment progress
-router.put('/enrollments/:enrollmentId', updateEnrollmentProgress);
+// Only authenticated users (or admin) can view enrollment count for a course
+router.get('/courses/:courseId/enrollment-count', getEnrollmentCountByCourseId);
 
-// Route to delete an enrollment (unenroll)
+// Only authenticated users can update their enrollment progress
+router.put('/enrollments/:enrollmentId',  updateEnrollmentProgress);
+
+// Only authenticated users (or admin) can delete their enrollment
 router.delete('/enrollments/:enrollmentId', deleteEnrollment);
 
 export default router;

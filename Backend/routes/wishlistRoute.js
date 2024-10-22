@@ -1,23 +1,32 @@
-import express from 'express';
+import express from "express";
 import {
   addToWishlist,
   getWishlistByUserId,
   removeFromWishlist,
-  checkWishlistItem
-} from '../Controllers/wishlistController.js';
+  checkWishlistItem,
+} from "../Controllers/wishlistController.js";
+import { authenticateToken } from "../middleware/authenticateToken.js"; // Import your authentication middleware
 
 const router = express.Router();
 
-// Route to add a course to the wishlist
-router.post('/wishlist', addToWishlist);
+// Add item to wishlist
+router.post("/wishlist", authenticateToken, addToWishlist);
 
-// Route to get all wishlist items for a specific user
-router.get('/wishlist/user/:userId', getWishlistByUserId);
+// Get wishlist for a user
+router.get("/wishlist/user/:userId", authenticateToken, getWishlistByUserId);
 
-// Route to remove a course from the wishlist
-router.delete('/wishlist/:wishlistId', removeFromWishlist);
+// Remove item from wishlist
+router.delete(
+  "/wishlist/user/:wishlistId",
+  authenticateToken,
+  removeFromWishlist
+);
 
-// Route to check if a specific course is in the user's wishlist
-router.get('/wishlist/check/:userId/:courseId', checkWishlistItem);
+// Check if a course is in the user's wishlist
+router.get(
+  "/wishlist/check/:userId/:courseId",
+  authenticateToken,
+  checkWishlistItem
+);
 
 export default router;

@@ -8,25 +8,28 @@ import {
 } from "../Controllers/categoryController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
 import { validateCategory } from "../middleware/validateCategory.js";
-import { adminOnly } from '../middleware/adminMiddleware.js';
+import { instructorOnly } from "../middleware/InstructorMiddleware.js";
+// import { adminOnly } from '../middleware/adminMiddleware.js';
 
 const router = express.Router();
 
 router.post(
   "/",
   authenticateToken,
-  adminOnly,
+  instructorOnly,
   validateCategory,
   createCategory
 );
+
 router.put(
   "/:id",
   authenticateToken,
-  adminOnly,
+  instructorOnly,
   validateCategory,
   updateCategory
 );
-router.delete("/:id", authenticateToken, adminOnly, deleteCategory);
+
+router.delete("/:id", authenticateToken, instructorOnly, deleteCategory);
 router.get("/", getCategories);
 router.get("/:id", getCategory);
 export default router;

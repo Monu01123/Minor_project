@@ -9,10 +9,11 @@ import {
   sendResetPasswordEmail,
   resetPassword,
   authenticateToken,
-  changePassword,
   getUserProfile,
   updateUserProfile,
   resendOTP,
+  hashPassword,
+  updatePassword,
 } from "../Controllers/userController.js";
 import { promisePool } from "../db.js";
 
@@ -51,6 +52,7 @@ router.post(
   }
 );
 
+// Inside your login route
 router.post(
   "/login",
   body("email").isEmail().withMessage("Invalid email address"),
@@ -75,8 +77,18 @@ router.post(
         return res.status(403).json({ message: "Email not verified" });
       }
 
-      const token = generateToken(user);
-      res.json({ token });
+      const token = generateToken(user); // Generates JWT token
+
+      // Modify the response to include the user details along with the token
+      res.json({
+        token,
+        user: {
+          user_id: user.user_id,
+          full_name: user.full_name,
+          email: user.email,
+          role: user.role,
+        },
+      });
     } catch (err) {
       console.error(err);
       res.status(500).send("Server Error");
@@ -84,6 +96,15 @@ router.post(
   }
 );
 
+router.get("/profile/:userId", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const userProfile = await getUserProfile(userId);
+    res.json(userProfile);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user profile" });
+  }
+});
 
 router.post(
   "/forgot-password",
@@ -111,7 +132,6 @@ router.post(
   }
 );
 
-
 router.post(
   "/reset-password",
   body("email").isEmail().withMessage("Invalid email address"),
@@ -135,22 +155,60 @@ router.post(
   }
 );
 
-router.post("/change-password", authenticateToken, async (req, res) => {
-  const { newPassword } = req.body;
-  const userId = req.user.user_id;
+router.post(
+  "/change-password",
+  body("email").isEmail().withMessage("Invalid email address"),
+  body("oldPassword")
+    .isLength({ min: 6 })
+    .withMessage("Old password must be at least 6 characters long"),
+  body("newPassword")
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters long"),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log("Validation Errors:", errors.array()); // Log validation errors
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-  try {
-    await changePassword(userId, newPassword);
-    res.status(200).json({ message: "Password changed successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    const { email, oldPassword, newPassword } = req.body;
+    console.log("Request Body:", req.body); // Log full request body
+    console.log("Extracted Email:", email); // Log extracted email
+    console.log("Old Password:", oldPassword); // Log old password
+    console.log("New Password:", newPassword); // Log new password
+
+    try {
+      const user = await findUserByEmail(email);
+      console.log("User Found:", user);  // Log the found user
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isOldPasswordValid = await verifyPassword(oldPassword, user.password_hash);
+      console.log("Is Old Password Valid:", isOldPasswordValid);  // Log password verification result
+
+      if (!isOldPasswordValid) {
+        return res.status(401).json({ message: "Old password is incorrect" });
+      }
+
+      const hashedNewPassword = await hashPassword(newPassword);
+      console.log("Hashed New Password:", hashedNewPassword);  // Log the new hashed password
+
+      await updatePassword(user.user_id, hashedNewPassword);
+
+      res.json({ message: "Password changed successfully" });
+    } catch (err) {
+      console.error("Error:", err); // Log the error
+      res.status(500).send("Server Error");
+    }
   }
-});
+);
+
 
 router.get("/profile", authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.user_id; // Use the user_id from the authenticated token
+    const userId = req.user.user_id;
     const userProfile = await getUserProfile(userId);
     res.json(userProfile);
   } catch (error) {
@@ -174,7 +232,6 @@ router.post("/become-instructor", authenticateToken, async (req, res) => {
   const userId = req.user.user_id;
 
   try {
-    // Fetch the current role
     const [user] = await promisePool.query(
       "SELECT role FROM users WHERE user_id = ?",
       [userId]
@@ -186,12 +243,10 @@ router.post("/become-instructor", authenticateToken, async (req, res) => {
 
     const currentRole = user[0].role;
 
-    // If the user is already an instructor, return an appropriate response
     if (currentRole === "instructor") {
       return res.status(400).json({ message: "You are already an instructor" });
     }
 
-    // Update the role to 'instructor'
     await promisePool.query(
       "UPDATE users SET role = 'instructor' WHERE user_id = ?",
       [userId]
@@ -236,7 +291,6 @@ router.post(
         return res.status(400).json({ message: "Expired OTP" });
       }
 
-      // Update user status to verified
       await promisePool.query(
         "UPDATE users SET otp = NULL, otp_expires = NULL,is_active = TRUE WHERE email = ?",
         [email]

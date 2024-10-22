@@ -1,4 +1,4 @@
-import { promisePool } from '../db.js'; // Using promise-based pool from mysql2
+import { promisePool } from '../db.js'; 
 
 
 export const enrollUserInCourse = async (req, res) => {
@@ -34,16 +34,16 @@ export const getEnrollmentsByUserId = async (req, res) => {
 
   try {
     const [rows] = await promisePool.query(
-      `SELECT e.enrollment_id, e.enrolled_at, e.progress, c.title 
+      `SELECT e.enrollment_id, e.enrolled_at, e.progress,c.course_id, c.title 
        FROM enrollments e
        JOIN courses c ON e.course_id = c.course_id
        WHERE e.user_id = ?`,
       [userId]
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'No enrollments found for this user' });
-    }
+    // if (rows.length === 0) {
+    //   return res.status(404).json({ message: 'No enrollments found for this user' });
+    // }
 
     res.json(rows);
   } catch (error) {
@@ -89,3 +89,23 @@ export const deleteEnrollment = async (req, res) => {
     res.status(500).json({ message: 'Error deleting enrollment' });
   }
 };
+
+
+export const getEnrollmentCountByCourseId = async (req, res) => {
+  const courseId = req.params.courseId;
+
+  try {
+    const [rows] = await promisePool.execute(
+      'SELECT COUNT(*) AS enrollment_count FROM enrollments WHERE course_id = ?',
+      [courseId]
+    );
+
+    const enrollmentCount = rows[0].enrollment_count;
+
+    res.status(200).json({ courseId, enrollmentCount });
+  } catch (error) {
+    console.error('Error fetching enrollment count:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+

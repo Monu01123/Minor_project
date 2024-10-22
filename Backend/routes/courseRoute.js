@@ -1,29 +1,52 @@
-import express from 'express';
+import express from "express";
 import {
   createCourse,
   getCourses,
   getCourseById,
   updateCourse,
   deleteCourse,
-  getCoursesByCategory
-} from '../Controllers/courseController.js';
+  getCoursesByCategory,
+  getCoursesByInstructor,
+} from "../Controllers/courseController.js";
+import { authenticateToken } from "../middleware/authenticateToken.js"; // Middleware to verify user token
+import { instructorOnly } from "../middleware/InstructorMiddleware.js"; // Middleware to allow only instructors
+import { adminOnly } from "../middleware/adminMiddleware.js"; // Middleware to allow only admins
 
 const router = express.Router();
 
-// Route to create a new course
-router.post('/courses', createCourse);
+// Only authenticated instructors or admins can create a course
+router.post("/courses", authenticateToken, instructorOnly, createCourse);
 
-// Route to get all courses
-router.get('/courses', getCourses);
+// Any authenticated user can view all courses
+router.get("/courses", getCourses);
 
-// Route to get a specific course by ID
-router.get('/courses/:courseId', getCourseById);
+// Any authenticated user can view a course by its ID
+router.get("/courses/:courseId", getCourseById);
 
-// Route to update a course by ID
-router.put('/courses/:courseId', updateCourse);
+// Only authenticated instructors or admins can update a course
+router.put(
+  "/courses/:courseId",
+  authenticateToken,
+  instructorOnly,
+  updateCourse
+);
 
-// Route to delete a course by ID
-router.delete('/courses/:courseId', deleteCourse);
+// Only authenticated instructors or admins can delete a course
+router.delete(
+  "/courses/:courseId",
+  authenticateToken,
+  instructorOnly,
+  deleteCourse
+);
 
-router.get('/courses/category/:categoryId', getCoursesByCategory);
+// Any authenticated user can get courses by category
+router.get("/courses/category/:categoryId", getCoursesByCategory);
+
+// Any authenticated user can get courses by instructor
+router.get(
+  "/courses/instructor/:instructorId",
+  authenticateToken,
+  instructorOnly,
+  getCoursesByInstructor
+);
 export default router;

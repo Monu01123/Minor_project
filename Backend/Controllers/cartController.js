@@ -1,6 +1,5 @@
-import { promisePool } from '../db.js'; // Using a promise-based pool from mysql2
+import { promisePool } from '../db.js'; 
 
-// Add a course to the cart
 export const addToCart = async (req, res) => {
     const { user_id, course_id } = req.body;
 
@@ -20,7 +19,7 @@ export const addToCart = async (req, res) => {
         );
 
         if (existingCartItem.length > 0) {
-            return res.status(400).json({ message: 'Course is already in the cart' });
+            return res.status(200).json({ message: 'Course is already in the cart' });
         }
 
         await promisePool.query(
@@ -48,31 +47,40 @@ export const getCartByUserId = async (req, res) => {
         const cart_id = cart[0].cart_id;
 
         const [cartItems] = await promisePool.query(
-            `SELECT ci.cart_item_id, ci.course_id, c.title AS course_title, ci.added_at
+            `SELECT 
+                ci.cart_item_id, 
+                ci.course_id, 
+                c.title AS course_title, 
+                c.price, 
+                c.discount_price, 
+                ci.added_at
              FROM cart_items ci
              JOIN courses c ON ci.course_id = c.course_id
              WHERE ci.cart_id = ?`,
             [cart_id]
         );
+  
+        if (cartItems.length === 0) {
+            return res.status(200).json({ message: 'No items in the cart', cartItems: [] });
+        }
 
-        res.json(cartItems);
+        res.json(cartItems); 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching cart items' });
     }
 };
 
-// Remove a course from the cart
+
+
 export const removeFromCart = async (req, res) => {
     const { cartItemId } = req.params;
 
     try {
         const [result] = await promisePool.query(`DELETE FROM cart_items WHERE cart_item_id = ?`, [cartItemId]);
-
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Cart item not found' });
         }
-
         res.json({ message: 'Course removed from cart successfully' });
     } catch (error) {
         console.error(error);
@@ -80,23 +88,21 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
-export const clearCart = async (req, res) => {
-    const { userId } = req.params;
-
+// In your cartController.js
+export const clearCart = async (userId) => {
     try {
         const [cart] = await promisePool.query(`SELECT * FROM cart WHERE user_id = ?`, [userId]);
 
         if (cart.length === 0) {
-            return res.status(404).json({ message: 'Cart not found' });
+            console.log('Cart not found for user:', userId);
+            return; // No cart to clear
         }
-
         const cart_id = cart[0].cart_id;
-
         await promisePool.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cart_id]);
-
-        res.json({ message: 'Cart cleared successfully' });
+        console.log('Cart cleared successfully for user:', userId);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error clearing cart' });
+        console.error('Error clearing cart:', error);
+        throw error; // Rethrow for error handling in the webhook
     }
 };
+

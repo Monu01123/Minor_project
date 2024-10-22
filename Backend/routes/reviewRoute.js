@@ -3,21 +3,31 @@ import {
   createReview,
   getReviewsByCourseId,
   updateReview,
-  deleteReview
+  deleteReview,
+  getReviewByCourseAndUserId,
+  getReviewsByCourseAndInstructor
 } from '../Controllers/reviewController.js';
+import { authenticateToken } from '../middleware/authenticateToken.js'; // Middleware to verify JWT
+// import { reviewOwnerOrAdminOnly } from '../middleware/reviewOwnerOrAdmin.js'; // Import the new middleware
 
 const router = express.Router();
 
-// Route to create a new review
-router.post('/reviews', createReview);
+// Only authenticated users can create reviews
+router.post('/reviews',authenticateToken,  createReview);
 
-// Route to get all reviews for a specific course
+// Anyone can view reviews for a course
 router.get('/reviews/course/:courseId', getReviewsByCourseId);
 
-// Route to update a review
-router.put('/reviews/:reviewId', updateReview);
+// Only the review owner or an admin can update the review
+router.put('/reviews/:reviewId',authenticateToken,  updateReview);
 
-// Route to delete a review
-router.delete('/reviews/:reviewId', deleteReview);
+// Only the review owner or an admin can delete the review
+router.delete('/reviews/:reviewId', authenticateToken, deleteReview);
+
+router.get('/reviews/course/:courseId/user/:userId', authenticateToken, getReviewByCourseAndUserId);
+
+router.get('/reviews/course/:courseId/instructor/:instructorId', authenticateToken, getReviewsByCourseAndInstructor);
+
+
 
 export default router;

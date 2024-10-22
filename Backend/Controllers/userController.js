@@ -1,17 +1,17 @@
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
-import { promisePool } from "../db.js"; // Import the database connection
+import { promisePool } from "../db.js"; 
 import jwt from "jsonwebtoken";
 
 const saltRounds = 10;
 const resetTokenExpiresTime = 3600000;
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+  return Math.floor(100000 + Math.random() * 900000).toString(); 
 };
 
 const initiatePasswordReset = async (email) => {
   const otp = generateOTP();
-  const otpExpires = new Date(Date.now() + resetTokenExpiresTime); // OTP expires in 1 hour
+  const otpExpires = new Date(Date.now() + resetTokenExpiresTime); 
 
   const [result] = await promisePool.query(
     `UPDATE users SET otp = ?, otp_expires = ? WHERE email = ?`,
@@ -24,7 +24,7 @@ const initiatePasswordReset = async (email) => {
   return otp;
 };
 
-// Add OTP generation and sending after user creation
+
 const createUser = async ({ full_name, email, password, role }) => {
   const password_hash = await bcrypt.hash(password, saltRounds);
   const [result] = await promisePool.query(
@@ -32,7 +32,7 @@ const createUser = async ({ full_name, email, password, role }) => {
     [full_name, email, password_hash, role]
   );
 
-  // Generate and send OTP
+ 
   const otp = generateOTP();
   const otpExpires = new Date(Date.now() + resetTokenExpiresTime);
 
@@ -64,11 +64,14 @@ const generateToken = (user) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
 
-const verifyPassword = async (password, password_hash) => {
-  return bcrypt.compare(password, password_hash);
-};
+async function verifyPassword(plainPassword, hashedPassword) {
+  if (!plainPassword || !hashedPassword) {
+      throw new Error('Both plain password and hashed password are required');
+  }
+  return bcrypt.compare(plainPassword, hashedPassword);
+}
 
-// Send the reset password OTP via email
+
 const sendResetPasswordEmail = async (email, otp) => {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -120,28 +123,18 @@ const resetPassword = async (email, otp, newPassword) => {
 };
 
 export const authenticateToken = (req, res, next) => {
-  // Extract the token from the Authorization header
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const token = authHeader && authHeader.split(" ")[1]; 
 
-  if (token == null) return res.sendStatus(401); // If no token is found
+  if (token == null) return res.sendStatus(401); 
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403); // If the token is no longer valid
-    req.user = user; // Attach the user information to the request object
-    next(); // Proceed to the next middleware or route handler
+    if (err) return res.sendStatus(403); 
+    req.user = user; 
+    next(); 
   });
 };
 
-// const saltRounds = 10;
-
-const changePassword = async (userId, newPassword) => {
-  const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
-  await promisePool.query(
-    `UPDATE users SET password_hash = ? WHERE user_id = ?`,
-    [newPasswordHash, userId]
-  );
-};
 
 const getUserProfile = async (userId) => {
   const [rows] = await promisePool.query(
@@ -155,22 +148,20 @@ const getUserProfile = async (userId) => {
 };
 
 
-// Function to update the user's profile
+
+
 const updateUserProfile = async (userId, updatedProfile) => {
   const { full_name, email } = updatedProfile;
 
-  // Ensure full_name and email are provided in the request body
   if (!full_name || !email) {
     throw new Error("Full name and email are required");
   }
 
-  // Update the user's profile in the database
   const [result] = await promisePool.query(
     "UPDATE users SET full_name = ?, email = ? WHERE user_id = ?",
     [full_name, email, userId]
   );
 
-  // Check if the update was successful
   if (result.affectedRows === 0) {
     throw new Error("Profile update failed");
   }
@@ -181,7 +172,6 @@ const updateUserProfile = async (userId, updatedProfile) => {
   };
 };
 
-// Function to resend OTP
 const resendOTP = async (email) => {
   const user = await findUserByEmail(email);
 
@@ -189,21 +179,30 @@ const resendOTP = async (email) => {
     throw new Error("User not found");
   }
 
-  // Generate new OTP and expiration time
+ 
   const otp = generateOTP();
-  const otpExpires = new Date(Date.now() + resetTokenExpiresTime); // 1-hour expiration
-
-  // Update the user record with the new OTP
+  const otpExpires = new Date(Date.now() + resetTokenExpiresTime);
   await promisePool.query(
     "UPDATE users SET otp = ?, otp_expires = ? WHERE email = ?",
     [otp, otpExpires, email]
   );
-
-  // Send the new OTP via email
   await sendResetPasswordEmail(email, otp);
-
   return { message: "OTP has been resent" };
 };
+
+ const hashPassword = async (password) => {
+  const saltRounds = 10; // You can adjust this based on your needs
+  return await bcrypt.hash(password, saltRounds);
+};
+
+export async function updatePassword(userId, newPasswordHash) {
+  console.log("Updating password for user_id:", userId);
+  const query = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+  const result = await promisePool.execute(query, [newPasswordHash, userId]);
+  // console.log("Update result:", result);
+  return result;
+}
+
 
 
 export {
@@ -216,6 +215,6 @@ export {
   resetPassword,
   createUser,
   findUserByEmail,
-  changePassword,
   resendOTP,
+  hashPassword,
 };
