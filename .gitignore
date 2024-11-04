@@ -29,7 +29,7 @@ coverage/
 bower_components/
 
 # dotenv environment variables file
-.env
+# .env
 
 # Database files
 *.sqlite
