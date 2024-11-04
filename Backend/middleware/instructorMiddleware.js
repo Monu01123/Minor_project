@@ -1,4 +1,4 @@
-// middlewares/instructorOnly.js
+
 import  jwt from  'jsonwebtoken';
 
 export const instructorOnly = (req, res, next) => {

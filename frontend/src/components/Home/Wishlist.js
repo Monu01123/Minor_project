@@ -2,8 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../Context/auth.js"; 
 import Navbar from "./NavBar.js";
+import { useWishlist } from "./WishlistContext.js"; // Import the useWishlist hook
+
+
 
 const Wishlist = () => {
+  const { updateWishlistCount } = useWishlist();
   const [wishlistItems, setWishlistItems] = useState([]);
   const [auth] = useAuth(); // Use the useAuth hook to get user data
 
@@ -73,6 +77,9 @@ const Wishlist = () => {
         (item) => item.wishlist_id !== wishlistItemId 
       );
       setWishlistItems(updatedWishlistItems);
+
+      const newWishlistCount = await fetchWishlistCount(); // You'll need to define this method to fetch the updated cart count
+      updateWishlistCount(newWishlistCount); // Update the cart count in Navbar
     } catch (error) {
       console.error("Error removing course from wishlist:", error);
       alert("Error removing course from wishlist");
@@ -103,11 +110,26 @@ const Wishlist = () => {
       );
 
       await handleRemoveFromWishlist(wishlistItem.wishlist_id);
+      const newWishlistCount = await fetchWishlistCount(); // You'll need to define this method to fetch the updated cart count
+      updateWishlistCount(newWishlistCount); // Update the cart count in Navbar
     } catch (error) {
       console.error("Error moving course to cart:", error);
       alert("Error moving course to cart.");
     }
   };
+
+  const fetchWishlistCount = async () => {
+    if (auth?.user) {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/wishlist/count/${auth.user.user_id}`);
+            updateWishlistCount(response.data.wishlist_count || 0); // Update cart count
+        } catch (error) {
+            console.error("Error fetching cart count:", error.message);
+        }
+    }
+  };
+  
+  fetchWishlistCount();
 
   return (
     <>

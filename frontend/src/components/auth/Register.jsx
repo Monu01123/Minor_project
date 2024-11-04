@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./auth.css";
-// import promo from "../images/register_promo.png";
+import logo from "../Home/logo.png";
 import Navbar from "../Home/NavBar";
 
 const Register = () => {
@@ -137,7 +137,7 @@ const Register = () => {
       <div className="main_register">
       {step === 1 ? (
         <form onSubmit={handleRegister} className="register_form">
-          <img src="sdfsfd" alt="logo" className="register_promo" />
+          <img src={logo} alt="logo" className="register_promo" />
           <h1>Register</h1>
           <input
             type="text"

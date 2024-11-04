@@ -1,37 +1,65 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../axiosconfig";
-import { useParams } from "react-router-dom";
-import Navbar from "../Home/NavBar";
+import { useParams, useLocation } from "react-router-dom";
+// import Navbar from "../Home/NavBar";
+import CatergoryMenu from "./CategoryMenu";
 
 const ManageCourseContent = () => {
   const { courseId } = useParams(); // Get courseId from URL params
   const [courseContent, setCourseContent] = useState([]);
+  const location = useLocation(); // Access the location object
+const [courseName, setCourseName] = useState(location.state?.courseName || ""); // State for course name
   const [newContent, setNewContent] = useState({
     title: "",
     content_type: "",
     content_url: "",
     content_text: "",
     duration: "",
-    content_order: "",
+    content_order: 0, // Start with 0, will be updated later
   });
   const [editingContent, setEditingContent] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
-  const [videoUrl, setVideoUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false); // For handling upload state
 
   useEffect(() => {
     fetchCourseContent();
-  }, [courseId]);
+    if (!courseName) {
+      fetchCourseDetails(); // Fetch course details if courseName wasn't passed
+    }
+  }, [courseId, courseName]);
 
   const handleFileChange = (event) => {
     setVideoFile(event.target.files[0]);
   };
 
-  const fetchCourseContent = () => {
-    axiosInstance
-      .get(`/api/content/${courseId}`)
-      .then((response) => setCourseContent(response.data))
-      .catch((error) => console.error("Error fetching content:", error));
+  const fetchCourseContent = async () => {
+    try {
+      const response = await axiosInstance.get(`/api/content/${courseId}`);
+      const contentData = response.data;
+      setCourseContent(contentData);
+
+      // Automatically set content order for new content
+      if (contentData.length > 0) {
+        const maxOrder = Math.max(
+          ...contentData.map((item) => item.content_order)
+        );
+        setNewContent((prev) => ({ ...prev, content_order: maxOrder + 1 }));
+      } else {
+        setNewContent((prev) => ({ ...prev, content_order: 1 })); // Start at 1 if no content exists
+      }
+    } catch (error) {
+      console.error("Error fetching content:", error);
+    }
+  };
+
+  const fetchCourseDetails = async () => {
+    try {
+      const response = await axiosInstance.get(`/api/courses/${courseId}`); // Adjust this endpoint as necessary
+      console.log("Course details:", response.data);
+      setCourseName(response.data.name);
+    } catch (error) {
+      console.error("Error fetching course details:", error);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -42,7 +70,7 @@ const ManageCourseContent = () => {
   const handleUpload = async () => {
     if (!videoFile) return; // Ensure a file is selected
     setIsUploading(true);
-    
+
     const formData = new FormData();
     formData.append("video", videoFile);
 
@@ -52,7 +80,10 @@ const ManageCourseContent = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      setVideoUrl(response.data.videoUrl); // Store the video URL from the response
+      setNewContent((prev) => ({
+        ...prev,
+        content_url: response.data.videoUrl,
+      })); // Update content_url directly here
       setIsUploading(false);
     } catch (error) {
       console.error("Error uploading video:", error);
@@ -62,78 +93,81 @@ const ManageCourseContent = () => {
 
   const createContent = async (e) => {
     e.preventDefault();
-    
-    if (!videoUrl) {
+
+    if (!newContent.content_url) {
       alert("Please upload the video first.");
       return;
     }
 
-    // Add video URL to the new content before submission
-    const contentData = { ...newContent, course_id: courseId, content_url: videoUrl };
+    const contentData = { ...newContent, course_id: courseId };
 
-    axiosInstance
-      .post("/api/content", contentData)
-      .then(() => {
-        fetchCourseContent();
-        setNewContent({
-          title: "",
-          content_type: "",
-          content_url: "",
-          content_text: "",
-          duration: "",
-          content_order: "",
-        });
-        setVideoUrl(null); // Reset after success
-      })
-      .catch((error) => console.error("Error creating content:", error));
+    try {
+      await axiosInstance.post("/api/content", contentData);
+      fetchCourseContent();
+      resetForm();
+    } catch (error) {
+      console.error("Error creating content:", error);
+    }
   };
 
   const updateContent = async (e) => {
     e.preventDefault();
-    
-    if (!videoUrl && !editingContent.content_url) {
-      alert("Please upload the video or retain the existing video.");
+
+    // Ensure a new video URL is provided for update
+    if (!newContent.content_url) {
+      alert("Please upload a new video for the update.");
       return;
     }
 
-    const updatedContentData = { ...newContent, content_url: videoUrl || editingContent.content_url };
+    const updatedContentData = {
+      ...newContent,
+      // No need for content_url fallback; it must be provided
+    };
 
-    axiosInstance
-      .put(`/api/content/${editingContent.content_id}`, updatedContentData)
-      .then(() => {
-        fetchCourseContent();
-        setEditingContent(null);
-        setNewContent({
-          title: "",
-          content_type: "",
-          content_url: "",
-          content_text: "",
-          duration: "",
-          content_order: "",
-        });
-        setVideoUrl(null); // Reset after success
-      })
-      .catch((error) => console.error("Error updating content:", error));
+    try {
+      await axiosInstance.put(
+        `/api/content/${editingContent.content_id}`,
+        updatedContentData
+      );
+      fetchCourseContent();
+      resetForm();
+    } catch (error) {
+      console.error("Error updating content:", error);
+    }
   };
 
-  const deleteContent = (contentId) => {
-    axiosInstance
-      .delete(`/api/content/${contentId}`)
-      .then(() => fetchCourseContent())
-      .catch((error) => console.error("Error deleting content:", error));
+  const deleteContent = async (contentId) => {
+    try {
+      await axiosInstance.delete(`/api/content/${contentId}`);
+      fetchCourseContent();
+    } catch (error) {
+      console.error("Error deleting content:", error);
+    }
   };
 
   const editContent = (content) => {
     setEditingContent(content);
     setNewContent(content);
-    setVideoUrl(content.content_url); // Set existing video URL to retain the video when editing
+  };
+
+  const resetForm = () => {
+    setEditingContent(null);
+    setNewContent({
+      title: "",
+      content_type: "",
+      content_url: "",
+      content_text: "",
+      duration: "",
+      content_order: 0,
+    });
+    setVideoFile(null); // Reset video file
   };
 
   return (
     <>
-      <Navbar />
+      <CatergoryMenu />
       <div>
-        <h1>Manage Course Content</h1>
+        <h1>Manage Course Content for: {courseName}</h1> {/* Display course name */}
         <h2>Content List</h2>
         <ul>
           {courseContent.map((content) => (
@@ -166,7 +200,7 @@ const ManageCourseContent = () => {
             required
           />
           <div>
-            <input type="file" onChange={handleFileChange} accept="video/*" required />
+            <input type="file" onChange={handleFileChange} accept="video/*" />
             <button type="button" onClick={handleUpload} disabled={isUploading}>
               {isUploading ? "Uploading..." : "Upload Video"}
             </button>
@@ -190,7 +224,7 @@ const ManageCourseContent = () => {
             name="content_order"
             placeholder="Content Order"
             value={newContent.content_order}
-            onChange={handleInputChange}
+            readOnly // Make it read-only since it's auto-incremented
           />
           <button type="submit" disabled={isUploading}>
             {editingContent ? "Update Content" : "Add Content"}

@@ -8,9 +8,9 @@ import {
   getCoursesByCategory,
   getCoursesByInstructor,
 } from "../Controllers/courseController.js";
-import { authenticateToken } from "../middleware/authenticateToken.js"; // Middleware to verify user token
-import { instructorOnly } from "../middleware/InstructorMiddleware.js"; // Middleware to allow only instructors
-import { adminOnly } from "../middleware/adminMiddleware.js"; // Middleware to allow only admins
+import { authenticateToken } from "../middleware/authenticateToken.js"; 
+import { instructorOnly } from "../middleware/InstructorMiddleware.js"; 
+import { adminOnly } from "../middleware/adminMiddleware.js"; 
 
 const router = express.Router();
 

@@ -93,8 +93,8 @@ select:focus {
 }
 
 .register_promo {
-  width: 100%;
-  height: 100%;
+  width: 100px;
+  height: 100px;
 }
 
 .register_form > input:focus,

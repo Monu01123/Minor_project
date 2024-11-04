@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CourseCard from './CourseCard';
 import Category from './Category';
+import axiosInstance from '../axiosconfig.js';
 
 const CourseContainer = () => {
   const { category_id } = useParams(); // Get category_id from the URL
@@ -17,7 +18,7 @@ const CourseContainer = () => {
 
     const fetchCourses = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/courses/category/${activeCategoryId}`);
+        const response = await axiosInstance.get(`/api/courses/category/${activeCategoryId}`);
         const data = response.data;
 
         // If the response is an object, convert it to an array

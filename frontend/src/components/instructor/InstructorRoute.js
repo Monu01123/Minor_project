@@ -6,14 +6,11 @@ const InstructorRoute = ({ children }) => {
   const auth = JSON.parse(localStorage.getItem("auth"));
 
   if (!auth || !auth.token) {
-    // Redirect to login page if not logged in
     return <Navigate to="/login" />;
   }
 
-  // Check if the user has an 'instructor' role
-  if (auth.user.role !== 'instructor') {
-    // Redirect to a 'not authorized' page or home page
-    return <Navigate to="/not-authorized" />;
+  if (auth.user.role !== 'instructor' && auth.user.role !== 'admin') {
+    return <Navigate to="/" />;
   }
 
   // Allow access to the page if logged in and role is 'instructor'

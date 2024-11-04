@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FaVideo, FaThumbsUp, FaThumbsDown, FaFlag } from 'react-icons/fa'; // Import necessary icons
 import CourseCard from './CourseCard';
 
+
 const ContentPage = () => {
   const { course_id } = useParams();
   const [course, setCourse] = useState(null);
@@ -46,6 +47,7 @@ const ContentPage = () => {
   }
 
   return (
+    <>
     <div>
       <div className='flex'>
         {/* Left side: Course Content */}
@@ -124,6 +126,7 @@ const ContentPage = () => {
 </div>
 
     </div>
+    </>
   );
 };
 

@@ -7,8 +7,8 @@ import {
   getReviewByCourseAndUserId,
   getReviewsByCourseAndInstructor
 } from '../Controllers/reviewController.js';
-import { authenticateToken } from '../middleware/authenticateToken.js'; // Middleware to verify JWT
-// import { reviewOwnerOrAdminOnly } from '../middleware/reviewOwnerOrAdmin.js'; // Import the new middleware
+import { authenticateToken } from '../middleware/authenticateToken.js'; 
+// import { reviewOwnerOrAdminOnly } from '../middleware/reviewOwnerOrAdmin.js'; 
 
 const router = express.Router();
 

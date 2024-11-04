@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { NavLink, useParams } from 'react-router-dom';
-import Navbar from './NavBar';
+import Navbar from './NavBar.js';
 import CategoryList from './Categorylist';
 import './HomePage.css';  
-import GradeIcon from '@mui/icons-material/Grade';
-
+import PortraitRoundedIcon from '@mui/icons-material/PortraitRounded';
+import Footer from './Footer';
 
 const CourseList = () => {
   const { categoryId } = useParams();
@@ -21,8 +21,8 @@ const CourseList = () => {
       });
   }, [categoryId]);
 
-  const calculateDiscountPrice = (price, discountPrice) => {
-    return discountPrice ? discountPrice : price;
+  const formatTitle = (title) => {
+    return title.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   return (
@@ -35,19 +35,15 @@ const CourseList = () => {
           <div className="course-card" key={course.course_id}>
             <img src={course.image_url} alt={course.title} className="course-image" />
             <div className="course-main-details">
-              <p><strong>{course.title}</strong></p>
-              <p style={{display:'flex',alignItems:'center'}}> <strong>{course.average_rating} <GradeIcon sx={{ color: 'orange', fontSize: 20 }} /></strong></p>
-              <p><strong>Level:</strong> {course.level}</p>
-              <p><strong>Language:</strong> {course.language}</p>
-              <p className="price">
-                <span className="discounted-price">${calculateDiscountPrice(course.price, course.discount_price)}</span>
-                {course.discount_price && <span className="original-price">${course.price}</span>}
-              </p>
+              <h5 className='course-instructor'><PortraitRoundedIcon fsx={{ fontSize: 10 }} className='instructor-icon'/> {formatTitle(course.instructor_name)}</h5>
+              <h4>{course.title.length > 24 ? `${course.title.substring(0, 24)}...` : course.title}</h4>
+              <h5 className='course-level'>{formatTitle(course.level)}</h5>
             </div>
           </div>
           </NavLink>
         ))}
       </div>
+      <Footer/>
     </>
   );
 };

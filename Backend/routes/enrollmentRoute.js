@@ -6,9 +6,9 @@ import {
   deleteEnrollment,
   getEnrollmentCountByCourseId
 } from '../Controllers/enrollmentController.js';
-import { authenticateToken } from '../middleware/authenticateToken.js';  // To verify user token
-import { adminOnly } from '../middleware/adminMiddleware.js';            // For admin-specific actions (if needed)
-import { enrolledUserOnly } from '../middleware/enrolledUserMiddleware.js'; // To restrict certain actions to the enrolled user
+import { authenticateToken } from '../middleware/authenticateToken.js';  
+import { adminOnly } from '../middleware/adminMiddleware.js';            
+import { enrolledUserOnly } from '../middleware/enrolledUserMiddleware.js'; 
 
 const router = express.Router();
 

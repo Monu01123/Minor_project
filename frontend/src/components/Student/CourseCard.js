@@ -48,7 +48,7 @@ const CourseCard = ({ course, userId }) => {
         rating,
         comment,
       });
-      console.log(response.data); // Handle response as needed
+      // console.log(response.data); // Handle response as needed
       setReviewSubmitted(true); // Set review submitted state
       setExistingReview({ rating, comment }); // Update existingReview state
     } catch (err) {

@@ -106,3 +106,29 @@ export const clearCart = async (userId) => {
     }
 };
 
+
+export const getCartCount = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const [cart] = await promisePool.query(`SELECT * FROM cart WHERE user_id = ?`, [userId]);
+
+        if (cart.length === 0) {
+            return res.status(200).json({ count: 0 }); // No cart found, return count as 0
+        }
+
+        const cart_id = cart[0].cart_id;
+
+        // Count the number of items in the cart
+        const [cartItems] = await promisePool.query(
+            `SELECT COUNT(*) AS itemCount FROM cart_items WHERE cart_id = ?`,
+            [cart_id]
+        );
+
+        res.json({ count: cartItems[0].itemCount || 0 }); // Return item count
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching cart count' });
+    }
+};
+

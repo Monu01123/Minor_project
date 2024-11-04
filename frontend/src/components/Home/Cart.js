@@ -3,12 +3,14 @@ import axios from "axios";
 import { useAuth } from "./../../Context/auth.js";
 import Navbar from "./NavBar.js";
 import { loadStripe } from "@stripe/stripe-js";
+import { useCart } from "./CartContext.js";
 
 const stripePromise = loadStripe(
   "pk_test_51MiCn5SCTwSZDv2RQSoCBZEhWYnhCpG7Yi90uqZm6mTFi2KE2Sp2VNLgrZgjidU209nlFv6qS26GjrIVnCbOQ2eA00bdSwIX1F"
 );
 
 const Cart = () => {
+  const { updateCartCount } = useCart();
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -20,7 +22,7 @@ const Cart = () => {
       setLoading(true);
       try {
         const userId = auth?.user?.user_id;
-        const token = auth?.token; 
+        const token = auth?.token;
 
         if (!userId) {
           console.error("User is not logged in.");
@@ -31,7 +33,7 @@ const Cart = () => {
           `http://localhost:8080/api/cart/user/${userId}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`, 
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -69,7 +71,7 @@ const Cart = () => {
   };
 
   const handleRemoveFromCart = async (cartItemId) => {
-    const token = auth?.token; 
+    const token = auth?.token;
     try {
       await axios.delete(`http://localhost:8080/api/cart/item/${cartItemId}`, {
         headers: {
@@ -81,6 +83,9 @@ const Cart = () => {
       );
       setCartItems(updatedCartItems);
       calculateTotal(updatedCartItems);
+      // Update cart count in Navbar
+      const newCartCount = await fetchCartCount(); // You'll need to define this method to fetch the updated cart count
+      updateCartCount(newCartCount); // Update the cart count in Navbar
     } catch (error) {
       console.error("Error removing course from cart:", error);
       alert("Error removing course from cart");
@@ -89,7 +94,7 @@ const Cart = () => {
 
   const handleMoveToWishlist = async (courseId, rmid) => {
     const userId = auth?.user?.user_id;
-    const token = auth?.token; 
+    const token = auth?.token;
     try {
       await axios.post(
         "http://localhost:8080/api/wishlist",
@@ -99,12 +104,15 @@ const Cart = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       await handleRemoveFromCart(rmid);
       console.log("Course moved to wishlist!");
+       // Update cart count in Navbar
+       const newCartCount = await fetchCartCount(); // You'll need to define this method to fetch the updated cart count
+       updateCartCount(newCartCount); // Update the cart count in Navbar
     } catch (error) {
       console.error("Error moving course to wishlist:", error);
     }
@@ -124,11 +132,10 @@ const Cart = () => {
         name: item.course_title,
         price: item.discount_price ? item.discount_price : item.price,
         quantity: 1,
-        courseId: item.course_id, 
+        courseId: item.course_id,
       }));
 
-      
-      const courseIds = cartItems.map((item) => item.course_id).join(',');
+      const courseIds = cartItems.map((item) => item.course_id).join(",");
 
       const token = auth?.token;
 
@@ -161,6 +168,19 @@ const Cart = () => {
     }
   };
 
+  const fetchCartCount = async () => {
+    if (auth?.user) {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/cart/count/${auth.user.user_id}`);
+            updateCartCount(response.data.count || 0); // Update cart count
+        } catch (error) {
+            console.error("Error fetching cart count:", error.message);
+        }
+    }
+};
+
+fetchCartCount();
+
   return (
     <>
       <Navbar />
@@ -191,7 +211,11 @@ const Cart = () => {
                   >
                     Remove
                   </button>
-                  <button onClick={() => handleMoveToWishlist(item.course_id, item.cart_item_id)}>
+                  <button
+                    onClick={() =>
+                      handleMoveToWishlist(item.course_id, item.cart_item_id)
+                    }
+                  >
                     Move to Wishlist
                   </button>
                 </li>

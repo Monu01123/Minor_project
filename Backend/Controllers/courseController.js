@@ -55,20 +55,24 @@ export const getCourseById = async (req, res) => {
   const { courseId } = req.params;
   try {
     const [rows] = await promisePool.query(
-      `SELECT * FROM courses WHERE course_id = ?`,
+      `SELECT 
+        c.*, 
+        u.full_name AS instructor_name, 
+        (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.course_id) AS enrollment_count
+      FROM courses c
+      JOIN users u ON c.instructor_id = u.user_id
+      WHERE c.course_id = ?`,
       [courseId]
     );
-
-    // if (rows.length === 0) {
-    //   return res.status(404).json({ message: "Course not found" });
-    // }
 
     res.json(rows[0]);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching course" });
+    res.status(500).json({ message: "Error fetching course details" });
   }
 };
+
+
 
 export const updateCourse = async (req, res) => {
   const { courseId } = req.params;
@@ -182,25 +186,30 @@ export const deleteCourse = async (req, res) => {
 };
 
 
-
 export const getCoursesByCategory = async (req, res) => {
   const { categoryId } = req.params;
   try {
     const [rows] = await promisePool.query(
-      `SELECT * FROM courses WHERE category_id = ?`,
+      `SELECT courses.*, users.full_name AS instructor_name 
+       FROM courses 
+       JOIN users ON courses.instructor_id = users.user_id 
+       WHERE courses.category_id = ?`,
       [categoryId]
     );
-    if (rows.length === 0){
+
+    if (rows.length === 0) {
       return res
         .status(404)
         .json({ message: "No courses found for this category" });
     }
+    
     res.json(rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching courses by category" });
   }
 };
+
 
 export const getCoursesByInstructor = async (req, res) => {
   const { instructorId } = req.params;

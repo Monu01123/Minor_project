@@ -98,3 +98,22 @@ export const checkWishlistItem = async (req, res) => {
     res.status(500).json({ message: 'Error checking wishlist item' });
   }
 };
+
+export const getWishlistCount = async (req, res) => {
+  const { userId } = req.params;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        const [result] = await promisePool.query(
+            'SELECT COUNT(course_id) AS wishlist_count FROM wishlist WHERE user_id = ?',
+            [userId]
+        );
+        res.json({ wishlist_count: result[0].wishlist_count });
+    } catch (error) {
+        console.error('Error fetching wishlist count:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};

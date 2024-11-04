@@ -5,7 +5,6 @@ import { useAuth } from "../../Context/auth.js";
 import "./dashboard.css";
 import GradeIcon from "@mui/icons-material/Grade";
 import "../Home/HomePage.css";
-// import Navbar from "../Home/NavBar.js";
 import CategoryMenu from "./CategoryMenu.js";
 
 const InstructorDashboard = () => {
@@ -22,14 +21,16 @@ const InstructorDashboard = () => {
     language: "",
   });
   const [editingCourse, setEditingCourse] = useState(null);
-
-  // const navigate = useNavigate(); // Use react-router-dom's useNavigate
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [categories, setCategories] = useState([]); // To store categories
 
   const instructorId = auth?.user?.user_id;
 
   useEffect(() => {
     if (instructorId) {
       fetchCourses();
+      fetchCategories(); // Fetch categories on load
     }
   }, [auth, instructorId]);
 
@@ -38,6 +39,13 @@ const InstructorDashboard = () => {
       .get(`/api/courses/instructor/${instructorId}`)
       .then((response) => setCourses(response.data))
       .catch((error) => console.error("Error fetching courses:", error));
+  };
+
+  const fetchCategories = () => {
+    axiosInstance
+      .get("/categories") // Adjust endpoint as necessary
+      .then((response) => setCategories(response.data))
+      .catch((error) => console.error("Error fetching categories:", error));
   };
 
   const handleChange = (e) => {
@@ -111,6 +119,31 @@ const InstructorDashboard = () => {
     }
   };
 
+  const handleFileChange = (event) => {
+    setImageFile(event.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    try {
+      const response = await axiosInstance.post("/api/upload-image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      const uploadedImageUrl = response.data.imageUrl;
+      setImageUrl(uploadedImageUrl);
+      setNewCourse((prevCourse) => ({
+        ...prevCourse,
+        image_url: uploadedImageUrl,
+      }));
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
+
   return (
     <>
       <CategoryMenu />
@@ -161,8 +194,8 @@ const InstructorDashboard = () => {
                       </button>
                       <NavLink
                         to={`/instructor/${instructorId}/course/${course.course_id}/reviews`}
+                        state={{ courseTitle: course.title }}
                       >
-                        {" "}
                         Reviews
                       </NavLink>
                     </div>
@@ -222,35 +255,53 @@ const InstructorDashboard = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="image_url">Image URL</label>
-              <input
-                type="text"
-                id="image_url"
-                name="image_url"
-                value={newCourse.image_url}
-                onChange={handleChange}
-              />
+              <input type="file" onChange={handleFileChange} accept="image/*" />
+              <button onClick={handleUpload}>Upload Image</button>
+              {imageUrl && (
+                <div>
+                  <h2>Uploaded Image:</h2>
+                  <img src={imageUrl} alt="Uploaded" width="300" />
+                </div>
+              )}
             </div>
             <div className="form-group">
-              <label htmlFor="category_id">Category ID</label>
-              <input
-                type="text"
+              <label htmlFor="category_id">Category</label>
+              <select
                 id="category_id"
                 name="category_id"
                 value={newCourse.category_id}
                 onChange={handleChange}
                 required
-              />
+              >
+                <option value="" disabled>
+                  Select a category
+                </option>
+                {categories.map((category) => (
+                  <option
+                    key={category.category_id}
+                    value={category.category_id}
+                  >
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label htmlFor="level">Level</label>
-              <input
-                type="text"
+              <select
                 id="level"
                 name="level"
                 value={newCourse.level}
                 onChange={handleChange}
-              />
+                required
+              >
+                <option value="" disabled>
+                  Select a level
+                </option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
             </div>
             <div className="form-group">
               <label htmlFor="language">Language</label>
@@ -260,9 +311,10 @@ const InstructorDashboard = () => {
                 name="language"
                 value={newCourse.language}
                 onChange={handleChange}
+                required
               />
             </div>
-            <button type="submit" className="submit-btn">
+            <button type="submit">
               {editingCourse ? "Update Course" : "Create Course"}
             </button>
           </form>

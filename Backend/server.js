@@ -18,16 +18,16 @@ import { promisePool } from "./db.js";
 import uploadRouter from "./routes/uploadRoute.js";
 // import { serialize } from "mongodb";
 import { clearCart } from "./Controllers/cartController.js";
+import uploadImageRouter from "./routes/upload.js";
+import search from "./routes/SearchRoute.js";
+import vediotrack from "./routes/vediotrack.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const stripe = new Stripe(
-  "sk_test_51MiCn5SCTwSZDv2RR3oDVEXTMMCoBlPVw38fMQnU8t1yytD2kA8UkD5sXgYOot40xweJJ4gpvZcmk1KfdppRoEF20068llVjAn"
-);
-const endpointSecret =
-  "whsec_33ae706467f90cf174362f72279bd9390d6985b79563baafd845100157491711";
+const stripe = new Stripe(process.env.STRIPE_SERVER_SECRET_KEY);
+const endpointSecret = process.env.ENDPOINT_SECRET;
 
 // Ensure the webhook route is defined before body-parser middleware
 app.post(
@@ -58,17 +58,26 @@ app.post(
         try {
           for (const courseId of courseIdArray) {
             await enrollUserInCourse(userId, courseId);
-            console.log(`User ${userId} successfully enrolled in course ${courseId}`);
+            console.log(
+              `User ${userId} successfully enrolled in course ${courseId}`
+            );
           }
 
           // Clear the user's cart after successful payment
           await clearCart(userId); // Pass only the userId
           console.log(`Cart cleared for user ${userId}`);
 
-          res.status(200).send("User successfully enrolled in all courses and cart cleared");
+          res
+            .status(200)
+            .send("User successfully enrolled in all courses and cart cleared");
         } catch (error) {
-          console.error("Error enrolling user in courses or clearing cart:", error);
-          res.status(500).send("Error enrolling user in courses or clearing cart");
+          console.error(
+            "Error enrolling user in courses or clearing cart:",
+            error
+          );
+          res
+            .status(500)
+            .send("Error enrolling user in courses or clearing cart");
         }
       } else {
         res.status(400).send("No course IDs found in metadata");
@@ -78,7 +87,6 @@ app.post(
     }
   }
 );
-
 
 // Use the rest of the middleware and routes after the webhook
 app.use(
@@ -99,7 +107,10 @@ app.use("/api", enrollmentRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api", wishlistRoutes);
 app.use("/api", cartRoutes);
+app.use("/api", search);
+app.use("/api",vediotrack);
 app.use("/api/upload", uploadRouter);
+app.use("/api/upload-image", uploadImageRouter);
 app.get("/profile", authenticateToken, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user });
 });

@@ -4,8 +4,9 @@ import {
   getWishlistByUserId,
   removeFromWishlist,
   checkWishlistItem,
+  getWishlistCount,
 } from "../Controllers/wishlistController.js";
-import { authenticateToken } from "../middleware/authenticateToken.js"; // Import your authentication middleware
+import { authenticateToken } from "../middleware/authenticateToken.js";
 
 const router = express.Router();
 
@@ -28,5 +29,7 @@ router.get(
   authenticateToken,
   checkWishlistItem
 );
+
+router.get("/wishlist/count/:userId", getWishlistCount);
 
 export default router;

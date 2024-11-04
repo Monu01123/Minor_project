@@ -107,7 +107,7 @@ form {
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
   margin-bottom: 30px;
 }
 
@@ -120,7 +120,7 @@ form input, form textarea {
   font-size: 16px;
 }
 
-form button {
+/* form button {
   background-color: #4CAF50;
   color: white;
   padding: 10px 20px;
@@ -129,11 +129,11 @@ form button {
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
-}
+} */
 
-form button:hover {
+/* form button:hover {
   background-color: #45a049;
-}
+} */
 
 ul {
   list-style-type: none;

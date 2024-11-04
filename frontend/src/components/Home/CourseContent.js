@@ -6,11 +6,17 @@ import "./HomePage.css";
 import Reviews from "./Reviews.js";
 import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
 import GradeIcon from "@mui/icons-material/Grade";
-import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
+// import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import { useAuth } from "../../Context/auth.js";
+import axiosInstance from "../../axiosconfig.js";
+import { useCart } from "./CartContext.js";
+import { useWishlist } from "./WishlistContext.js";
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 const CourseContent = () => {
   const { courseId } = useParams();
+  const { updateCartCount } = useCart();
+  const { updateWishlistCount } = useWishlist();
   const [courseDetails, setCourseDetails] = useState(null);
   const [content, setContent] = useState([]);
   const [auth] = useAuth();
@@ -20,39 +26,36 @@ const CourseContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [enrolled, setEnrolled] = useState(false);
 
   useEffect(() => {
     const token = auth?.token;
 
-    // Fetch general course details
     axios
       .get(`http://localhost:8080/api/courses/${courseId}`)
       .then((response) => {
+        console.log("Course Details Response j:", response.data);
         setCourseDetails(response.data);
       })
       .catch((error) => {
         console.error("Error fetching course details:", error);
       });
 
-    // Fetch course content, either for enrolled users or general content for non-logged-in users
     const fetchCourseContent = async () => {
       try {
         let response;
-        response = await axios.get(
-          `http://localhost:8080/api/content/enrolled/${courseId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        response = await axiosInstance.get(`api/content/enrolled/${courseId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         console.log("Course Content Response:", response.data);
         const content = response.data;
         setContent(content.length === 0 ? [] : content);
       } catch (error) {
         console.error("Error fetching content:", error);
       } finally {
-        setLoading(false); // Make sure to set loading to false here
+        setLoading(false);
       }
     };
 
@@ -63,7 +66,6 @@ const CourseContent = () => {
         const userId = auth?.user?.user_id;
         const token = auth?.token;
 
-        // Check if the user is logged in
         if (!userId || !token) {
           setError("User ID or token is not available.");
           return;
@@ -71,8 +73,8 @@ const CourseContent = () => {
 
         setLoading(true);
         try {
-          const cartResponse = await axios.get(
-            `http://localhost:8080/api/cart/user/${userId}`,
+          const cartResponse = await axiosInstance.get(
+            `/api/cart/user/${userId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`, // Include token here
@@ -81,8 +83,8 @@ const CourseContent = () => {
           );
           setCartItems(cartResponse.data);
 
-          const wishlistResponse = await axios.get(
-            `http://localhost:8080/api/wishlist/user/${userId}`,
+          const wishlistResponse = await axiosInstance.get(
+            `/api/wishlist/user/${userId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`, // Include token here
@@ -100,21 +102,44 @@ const CourseContent = () => {
 
       fetchUserItems();
     }
+
+    const checkEnrollmentStatus = async () => {
+      if (auth?.user?.user_id) {
+        const token = auth?.token;
+        try {
+          const response = await axiosInstance.get(
+            `/api/enrollments/user/${auth.user.user_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const enrolledCourses = response.data.map(
+            (enrollment) => enrollment.course_id
+          );
+          setEnrolled(enrolledCourses.includes(Number(courseId)));
+        } catch (error) {
+          console.error("Error checking enrollment status:", error);
+        }
+      }
+    };
+
+    checkEnrollmentStatus();
   }, [auth, courseId]);
 
   const AddToCart = async (courseId) => {
     const userId = auth?.user?.user_id;
     const token = auth?.token;
 
-    // Check if the user is logged in
     if (!userId) {
       alert("Please log in first to add this course to your cart.");
       return;
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/cart",
+      const response = await axiosInstance.post(
+        "/api/cart",
         {
           user_id: userId,
           course_id: courseId,
@@ -126,6 +151,10 @@ const CourseContent = () => {
         }
       );
       console.log("Course added to cart:", response.data.message);
+
+      // Update cart count in Navbar
+      const newCartCount = await fetchCartCount(); // You'll need to define this method to fetch the updated cart count
+      updateCartCount(newCartCount); // Update the cart count in Navbar
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(
@@ -151,8 +180,8 @@ const CourseContent = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/wishlist",
+      const response = await axiosInstance.post(
+        "/api/wishlist",
         {
           user_id: userId,
           course_id: courseId,
@@ -164,6 +193,8 @@ const CourseContent = () => {
         }
       );
       console.log("Course added to wishlist:", response.data.message);
+      const newWishlistCount = await fetchWishlistCount(); // You'll need to define this method to fetch the updated cart count
+      updateWishlistCount(newWishlistCount); // Update the cart count in Navbar
     } catch (error) {
       if (error.response && error.response.status === 400) {
         console.error(
@@ -194,6 +225,36 @@ const CourseContent = () => {
     navigate(`/courses-content/${courseId}`); // Navigate to CourseContentPage
   };
 
+  const fetchCartCount = async () => {
+    if (auth?.user) {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/cart/count/${auth.user.user_id}`
+        );
+        updateCartCount(response.data.count || 0); // Update cart count
+      } catch (error) {
+        console.error("Error fetching cart count:", error.message);
+      }
+    }
+  };
+
+  fetchCartCount();
+
+  const fetchWishlistCount = async () => {
+    if (auth?.user) {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/wishlist/count/${auth.user.user_id}`
+        );
+        updateWishlistCount(response.data.wishlist_count || 0); // Update cart count
+      } catch (error) {
+        console.error("Error fetching cart count:", error.message);
+      }
+    }
+  };
+
+  fetchWishlistCount();
+
   return (
     <>
       <Navbar />
@@ -202,33 +263,43 @@ const CourseContent = () => {
           <main className="Course-content-section">
             <div className="course-details uur">
               <h1>{courseDetails.title}</h1>
+              <p>{courseDetails.description}</p>
               <p style={{ display: "flex", alignItems: "center" }}>
                 <TranslateRoundedIcon /> Taught in {courseDetails.language}
               </p>
-              <p>{courseDetails.description}</p>
+              <p className="course-instructor"> Created by <span>{courseDetails.instructor_name}</span></p>
               {courseDetails.discount_price && (
                 <p>${courseDetails.discount_price}</p>
               )}
-              <button
-                onClick={() => AddToCart(courseId)}
-                className="btn_course_content"
-              >
-                Add to Cart
-              </button>
-              <button
-                onClick={() => AddToWishlist(courseId)}
-                className="btn_course_content"
-              >
-                Add to Wishlist
-              </button>
+              {enrolled ? (
+                <>
+                  <p></p>
+                </>
+              ) : (
+                <div className="course-content-buttons">
+                  <button
+                    onClick={() => AddToCart(courseId)}
+                    className="btn_course_content"
+                  >
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={() => AddToWishlist(courseId)}
+                    className="btn_course_content2"
+                  >
+                    <FavoriteBorderIcon fontSize="small" style={{color:"#007791"}}/>
+                  </button>
+                </div>
+              )}
+
               <button
                 onClick={handleOpenCourseContentPage}
                 className="btn_course_content"
               >
-                View Course Content
+                Go to Course
               </button>
               {message && <p className="message">{message}</p>}
-              {/* Display message */}
+              <p><b>{courseDetails.enrollment_count}</b> already enrolled </p>
             </div>
           </main>
         ) : (
