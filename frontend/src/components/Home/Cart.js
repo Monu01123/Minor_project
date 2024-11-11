@@ -4,6 +4,10 @@ import { useAuth } from "./../../Context/auth.js";
 import Navbar from "./NavBar.js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useCart } from "./CartContext.js";
+import cartImage from "./chat.png";
+import "./Cart.css";
+import Footer from "./Footer.js";
+import { useWishlist } from "./WishlistContext.js";
 
 const stripePromise = loadStripe(
   "pk_test_51MiCn5SCTwSZDv2RQSoCBZEhWYnhCpG7Yi90uqZm6mTFi2KE2Sp2VNLgrZgjidU209nlFv6qS26GjrIVnCbOQ2eA00bdSwIX1F"
@@ -15,6 +19,7 @@ const Cart = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { updateWishlistCount } = useWishlist();
   const [auth] = useAuth();
 
   useEffect(() => {
@@ -108,11 +113,12 @@ const Cart = () => {
           },
         }
       );
+
       await handleRemoveFromCart(rmid);
       console.log("Course moved to wishlist!");
-       // Update cart count in Navbar
-       const newCartCount = await fetchCartCount(); // You'll need to define this method to fetch the updated cart count
-       updateCartCount(newCartCount); // Update the cart count in Navbar
+       const newCartCount = await fetchCartCount();
+       updateWishlistCount(userId, token); 
+       updateCartCount(newCartCount); 
     } catch (error) {
       console.error("Error moving course to wishlist:", error);
     }
@@ -185,27 +191,23 @@ fetchCartCount();
     <>
       <Navbar />
       <div className="cart-container">
-        <h1>Your Cart</h1>
+      <h1>Your Cart</h1>
         {loading ? (
           <p>Loading...</p>
         ) : cartItems.length === 0 ? (
+         <div className="empty-cart">
+          <img src={cartImage}  alt="Empty Cart" />
           <p>Your cart is empty</p>
+         </div> 
         ) : (
-          <div>
+          <div className="cart-main-container">
+            <div className="cart-list">
             <ul>
               {cartItems.map((item) => (
-                <li key={item.cart_item_id}>
+                <li key={item.cart_item_id} className="cart-item-list">
+                  <img src={item.image_url} alt={item.course_title} />
                   <h3>{item.course_title}</h3>
-                  <p>
-                    {item.discount_price ? (
-                      <>
-                        <del>₹{Math.round(item.price)}</del>
-                        <span> ₹{Math.round(item.discount_price)}</span>
-                      </>
-                    ) : (
-                      <span>₹{Math.round(item.price)}</span>
-                    )}
-                  </p>
+                  <div>
                   <button
                     onClick={() => handleRemoveFromCart(item.cart_item_id)}
                   >
@@ -218,14 +220,29 @@ fetchCartCount();
                   >
                     Move to Wishlist
                   </button>
+                  </div>
+                  <p>
+                    {item.discount_price ? (
+                      <div className="cart-buttons">
+                        <span> ₹{Math.round(item.discount_price)}</span>
+                        <del>₹{Math.round(item.price)}</del>
+                      </div>
+                    ) : (
+                      <span>₹{Math.round(item.price)}</span>
+                    )}
+                  </p>
                 </li>
               ))}
             </ul>
-            <h2>Total Price: ₹{totalPrice}</h2>
+            <div>
+            <h2><span style={{color:"black"}}>Subtotal:</span><br/> ₹{totalPrice}</h2>
             <button onClick={handleCheckout}>Checkout</button>
+            </div>
+          </div>
           </div>
         )}
       </div>
+      <Footer />
     </>
   );
 };

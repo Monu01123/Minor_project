@@ -1,6 +1,5 @@
 import { promisePool } from '../db.js'; 
 
-
 export const addToWishlist = async (req, res) => {
   const { user_id, course_id } = req.body;
 
@@ -41,7 +40,8 @@ export const getWishlistByUserId = async (req, res) => {
         c.title AS course_title, 
         c.price, 
         c.discount_price, 
-        w.added_at 
+        w.added_at,
+        c.image_url 
       FROM wishlist w
       JOIN courses c ON w.course_id = c.course_id
       WHERE w.user_id = ?`,

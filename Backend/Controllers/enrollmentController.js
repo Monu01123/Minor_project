@@ -34,7 +34,7 @@ export const getEnrollmentsByUserId = async (req, res) => {
 
   try {
     const [rows] = await promisePool.query(
-      `SELECT e.enrollment_id, e.enrolled_at, e.progress,c.course_id, c.title 
+      `SELECT e.enrollment_id, e.enrolled_at, e.progress,c.course_id, c.title, c.image_url 
        FROM enrollments e
        JOIN courses c ON e.course_id = c.course_id
        WHERE e.user_id = ?`,

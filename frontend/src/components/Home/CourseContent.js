@@ -6,12 +6,14 @@ import "./HomePage.css";
 import Reviews from "./Reviews.js";
 import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
 import GradeIcon from "@mui/icons-material/Grade";
-// import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import { useAuth } from "../../Context/auth.js";
 import axiosInstance from "../../axiosconfig.js";
 import { useCart } from "./CartContext.js";
 import { useWishlist } from "./WishlistContext.js";
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import PlayCircleOutlinedIcon from "@mui/icons-material/PlayCircleOutlined";
+import Footer from "./Footer.js";
+
 
 const CourseContent = () => {
   const { courseId } = useParams();
@@ -222,7 +224,9 @@ const CourseContent = () => {
   }
 
   const handleOpenCourseContentPage = () => {
-    navigate(`/courses-content/${courseId}`); // Navigate to CourseContentPage
+    navigate(`/courses-content/${courseId}`, {
+      state: { courseName: courseDetails?.title },
+    });
   };
 
   const fetchCartCount = async () => {
@@ -267,9 +271,11 @@ const CourseContent = () => {
               <p style={{ display: "flex", alignItems: "center" }}>
                 <TranslateRoundedIcon /> Taught in {courseDetails.language}
               </p>
-              <p className="course-instructor"> Created by <span>{courseDetails.instructor_name}</span></p>
+              <p className="course-instructor">
+                Created by <span>{courseDetails.instructor_name}</span>
+              </p>
               {courseDetails.discount_price && (
-                <p>${courseDetails.discount_price}</p>
+                <p>₹{courseDetails.discount_price}</p>
               )}
               {enrolled ? (
                 <>
@@ -287,7 +293,7 @@ const CourseContent = () => {
                     onClick={() => AddToWishlist(courseId)}
                     className="btn_course_content2"
                   >
-                    <FavoriteBorderIcon fontSize="small" style={{color:"#007791"}}/>
+                    <FavoriteBorderIcon className="wishlist-icon" />
                   </button>
                 </div>
               )}
@@ -299,7 +305,9 @@ const CourseContent = () => {
                 Go to Course
               </button>
               {message && <p className="message">{message}</p>}
-              <p><b>{courseDetails.enrollment_count}</b> already enrolled </p>
+              <p>
+                <b>{courseDetails.enrollment_count}</b> already enrolled{" "}
+              </p>
             </div>
           </main>
         ) : (
@@ -310,7 +318,12 @@ const CourseContent = () => {
           <>
             <div className="course-content-section1">
               <div>
-                {courseDetails.average_rating || "No rating"}{" "}
+                {courseDetails.average_rating !== undefined &&
+                !isNaN(Number(courseDetails.average_rating))
+                  ? Number(courseDetails.average_rating) === 0
+                    ? ""
+                    : Number(courseDetails.average_rating).toFixed(1)
+                  : "N/A"}
                 <GradeIcon sx={{ color: "orange" }} />
               </div>
               <div className="divider-section"></div>
@@ -343,7 +356,7 @@ const CourseContent = () => {
           </div>
         </div>
 
-        <div className="content">
+        <div className="course-content-list">
           <h1>Course Content</h1>
           {error && <p className="error-message">{error}</p>}
           {loading ? (
@@ -351,31 +364,17 @@ const CourseContent = () => {
           ) : (
             <div>
               {content.map((item) => (
-                <div key={item.content_id}>
+                <div className="course-content-titles" key={item.content_id}>
+                  <PlayCircleOutlinedIcon />
                   <h2>{item.title}</h2>
-                  <hr />
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        <div>
-          {courseDetails ? (
-            <>
-              <div className="course-content-section1">
-                <div>
-                  {courseDetails.average_rating || "No rating"}{" "}
-                  <GradeIcon sx={{ color: "orange" }} />
-                </div>
-              </div>
-            </>
-          ) : (
-            <p>Loading course details...</p>
-          )}
-          <Reviews />
-        </div>
+        <Reviews />
       </div>
+      <Footer />
     </>
   );
 };

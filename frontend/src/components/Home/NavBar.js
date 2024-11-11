@@ -14,6 +14,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownTwoToneIcon from "@mui/icons-material/ArrowDropDownTwoTone";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
+import UserProfile from "../Student/Profile.js";
 
 const Navbar = () => {
   const [auth] = useAuth();
@@ -25,6 +26,7 @@ const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -103,6 +105,10 @@ const Navbar = () => {
     setIsModalOpen(false);
     setSearchTerm("");
     setSearchResults([]);
+  };
+
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
 
   return (
@@ -195,9 +201,17 @@ const Navbar = () => {
                 <FavoriteBorderOutlinedIcon className="nav-icon" />
                 <span className="cart-count">{wishlistCount}</span>
               </NavLink>
-              <NavLink to="/profile">
-                <AccountBoxOutlinedIcon className="nav-icon" />
-              </NavLink>
+              <span className="profile-menu">
+                <AccountBoxOutlinedIcon
+                  className="nav-icon profile-icon"
+                  onClick={toggleProfileDropdown}
+                />
+                {isProfileDropdownOpen && (
+                  <div className="profile-dropdown">
+                    <UserProfile />
+                  </div>
+                )}
+              </span>
               <NavLink to="/" className="nav-link" onClick={handleLogout}>
                 Logout
               </NavLink>
@@ -217,9 +231,17 @@ const Navbar = () => {
                 <ShoppingCartOutlinedIcon className="nav-icon" />
                 <span className="cart-count">{cartCount}</span>
               </NavLink>
-              <NavLink to="/profile">
-                <AccountBoxOutlinedIcon className="nav-icon" />
-              </NavLink>
+              <span className="profile-menu">
+                <AccountBoxOutlinedIcon
+                  className="nav-icon profile-icon"
+                  onClick={toggleProfileDropdown}
+                />
+                {isProfileDropdownOpen && (
+                  <div className="profile-dropdown">
+                    <UserProfile />
+                  </div>
+                )}
+              </span>
               <NavLink to="/" className="nav-link" onClick={handleLogout}>
                 Logout
               </NavLink>
@@ -232,7 +254,7 @@ const Navbar = () => {
                 My <br />
                 Courses
               </NavLink>
-              <NavLink to="/instructor-dashboard" className="nav-link">
+              <NavLink to="/instructor-dashboard/course" className="nav-link">
                 Instructor
                 <br /> Dashboard
               </NavLink>
@@ -244,9 +266,17 @@ const Navbar = () => {
                 <ShoppingCartOutlinedIcon className="nav-icon" />
                 <span className="cart-count">{cartCount}</span>
               </NavLink>
-              <NavLink to="/profile">
-                <AccountBoxOutlinedIcon className="nav-icon" />
-              </NavLink>
+              <span className="profile-menu">
+                <AccountBoxOutlinedIcon
+                  className="nav-icon profile-icon"
+                  onClick={toggleProfileDropdown}
+                />
+                {isProfileDropdownOpen && (
+                  <div className="profile-dropdown">
+                    <UserProfile />
+                  </div>
+                )}
+              </span>
               <NavLink to="/" className="nav-logout" onClick={handleLogout}>
                 <LogoutIcon />
               </NavLink>

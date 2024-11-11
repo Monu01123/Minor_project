@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../axiosconfig';
 import "./student.css";
-import Navbar from './../Home/NavBar.js';
+// import Navbar from './../Home/NavBar.js';
 
 const UserProfile = () => {
   const [userProfile, setUserProfile] = useState({
@@ -83,11 +83,10 @@ const UserProfile = () => {
 
   return (
    <>
-   <Navbar />
-   <div>
-      <h1>User Profile</h1>
+   {/* <Navbar /> */}
+   <div className='Profile-container'>
       <h2>{userProfile.full_name}</h2>
-      <h3>{userProfile.email}</h3>
+      <p>{userProfile.email}</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {success && <p style={{ color: 'green' }}>{success}</p>}
 
@@ -110,10 +109,12 @@ const UserProfile = () => {
                   />
                 </label>
               </div>
-              <button type="submit">Save</button>
+              <div className='button-collection'>
+              <button type="submit" className='firstbtn'>Save</button>
               <button type="button" onClick={() => setIsEditingName(false)}>
                 Cancel
               </button>
+              </div>
             </form>
           </div>
         </div>
@@ -148,10 +149,12 @@ const UserProfile = () => {
                   />
                 </label>
               </div>
-              <button type="submit">Change Password</button>
+              <div className='button-collection'>
+              <button type="submit" className='firstbtn'>Change Password</button>
               <button type="button" onClick={() => setIsEditingPassword(false)}>
                 Cancel
               </button>
+              </div>
             </form>
           </div>
         </div>

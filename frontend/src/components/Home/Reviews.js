@@ -7,8 +7,11 @@ import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 const Reviews = () => {
   const { courseId } = useParams();
   const [reviews, setReviews] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 4;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -17,7 +20,6 @@ const Reviews = () => {
           `http://localhost:8080/api/reviews/course/${courseId}`
         );
 
-        // Check if the response data is an array
         if (Array.isArray(response.data)) {
           setReviews(response.data);
           setError(null);
@@ -49,35 +51,116 @@ const Reviews = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const totalReviews = reviews.length;
+  const ratingCounts = [0, 0, 0, 0, 0];
+
+  reviews.forEach((review) => {
+    ratingCounts[5 - review.rating]++;
+  });
+
+  const ratingPercentages = ratingCounts.map(
+    (count) => (count / totalReviews) * 100
+  );
+
+  const filteredReviews = selectedRatingFilter
+    ? reviews.filter((review) => review.rating === selectedRatingFilter)
+    : reviews;
+
+  const startIndex = (currentPage - 1) * reviewsPerPage;
+  const endIndex = startIndex + reviewsPerPage;
+  const currentReviews = filteredReviews.slice(startIndex, endIndex);
+
+  const handleNextPage = () => {
+    setCurrentPage((prevPage) => prevPage + 1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prevPage) => prevPage - 1);
+  };
+
+  const handleRatingFilterChange = (rating) => {
+    setSelectedRatingFilter(rating);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
   return (
     <div className="reviews-container">
       {loading ? (
         <p>Loading reviews...</p>
       ) : error ? (
         <p className="error-message">{error}</p>
-      ) : reviews.length > 0 ? (
-        reviews.map((review) => (
-          <div key={review.review_id} className="review-card">
-            <div className="review-header">
-              <div className="review-rating">
-                <AccountCircleRoundedIcon color="disabled" fontSize="large" />
-                <span className="review-user">{review.user_name}</span>
-                {"★".repeat(review.rating)}
-                {"☆".repeat(5 - review.rating)}
-              </div>
-              <span className="review-date">
-                Reviewed on {formatDate(review.created_at)}
-              </span>
-            </div>
-            <div className="review-comment">
-              <p>{review.comment}</p>
-            </div>
-          </div>
-        ))
       ) : (
-        <p>
-          No reviews available for this course. Be the first to leave a review!
-        </p>
+        <main className="Review-flex">
+          <section>
+            <div className="rating-distribution">
+              <button onClick={() => handleRatingFilterChange(null)}>
+                All Reviews
+              </button>
+              {ratingPercentages.map((percentage, index) => (
+                <div
+                  key={index}
+                  className="rating-bar"
+                  onClick={() => handleRatingFilterChange(5 - index)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span className="stars">
+                    {"★".repeat(5 - index)}
+                    {"☆".repeat(index)}
+                  </span>
+                  <div className="bar">
+                    <div
+                      className="filled-bar"
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <span className="percentage">{percentage.toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            {currentReviews.length > 0 ? (
+              currentReviews.map((review) => (
+                <div key={review.review_id} className="review-card">
+                  <div className="review-header">
+                    <div className="review-rating">
+                      <AccountCircleRoundedIcon
+                        color="disabled"
+                        fontSize="large"
+                      />
+                      <div>
+                        <span className="review-user">{review.user_name}</span>
+                        {"★".repeat(review.rating)}
+                        {"☆".repeat(5 - review.rating)}
+                      </div>
+                    </div>
+                    <span className="review-date">
+                      Reviewed on {formatDate(review.created_at)}
+                    </span>
+                  </div>
+                  <div className="review-comment">
+                    <p>{review.comment}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No reviews found for the selected rating.</p>
+            )}
+            <div className="pagination-controls">
+              <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+                Previous
+              </button>
+              <span>Page {currentPage}</span>
+              <button
+                onClick={handleNextPage}
+                disabled={endIndex >= filteredReviews.length}
+              >
+                Next
+              </button>
+            </div>
+          </section>
+        </main>
       )}
     </div>
   );

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../axiosconfig";
 import { Link } from "react-router-dom";
+import "./student.css";
 
 const CourseCard = ({ course, userId }) => {
   const [enrollmentCount, setEnrollmentCount] = useState(0);
-  const [rating, setRating] = useState(0); // For the rating input
-  const [comment, setComment] = useState(""); // For the comment input
-  const [reviewSubmitted, setReviewSubmitted] = useState(false); // To manage review submission state
-  const [existingReview, setExistingReview] = useState(null); // To hold existing review
+  const [rating, setRating] = useState(0); 
+  const [comment, setComment] = useState(""); 
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [existingReview, setExistingReview] = useState(null); 
 
   useEffect(() => {
     const fetchEnrollmentCount = async () => {
@@ -27,8 +28,8 @@ const CourseCard = ({ course, userId }) => {
           `/api/reviews/course/${course.course_id}/user/${userId}`
         );
         if (response.data.length > 0) {
-          setExistingReview(response.data[0]); // Assume the response returns an array of reviews
-          setReviewSubmitted(true); // Set to true if a review exists
+          setExistingReview(response.data[0]); 
+          setReviewSubmitted(true); 
         }
       } catch (err) {
         console.error("Error fetching existing review:", err);
@@ -40,7 +41,7 @@ const CourseCard = ({ course, userId }) => {
   }, [course.course_id, userId]);
 
   const handleReviewSubmit = async (e) => {
-    e.preventDefault(); // Prevent page refresh
+    e.preventDefault(); 
     try {
       const response = await axiosInstance.post("/api/reviews", {
         user_id: userId,
@@ -48,43 +49,36 @@ const CourseCard = ({ course, userId }) => {
         rating,
         comment,
       });
-      // console.log(response.data); // Handle response as needed
-      setReviewSubmitted(true); // Set review submitted state
-      setExistingReview({ rating, comment }); // Update existingReview state
+      
+      setReviewSubmitted(true); 
+      setExistingReview({ rating, comment }); 
     } catch (err) {
       console.error("Error submitting review:", err);
     }
   };
 
   return (
-    <div className="course-card">
+    <div className="course-card enrollment-card">
       <Link
         key={course.enrollment_id}
-        to={`/courses/${course.course_id}`} // Use course_id here for redirection
-        className="view-course-button"
+        to={`/courses/${course.course_id}`} 
+        className="enrollment-card-link"
         style={{ textDecoration: "none", color: "inherit" }}
       >
         <img
           src={course.image_url}
           alt={course.title}
-          style={{ width: "100px", height: "100px" }}
+          className="course-image"
         />
-        <h3>{course.title}</h3>
-        <p>{course.description}</p>
+        <h4>{course.title.length > 24 ? `${course.title.substring(0, 24)}...` : course.title}</h4>
         <p>Enrollments: {enrollmentCount}</p>
         <button>Go to Course</button>
       </Link>
-
-      {/* Review Section */}
+   
       {existingReview ? (
-        <div>
-          {/* <h4>Your Review:</h4>
-          <p>Rating: {existingReview.rating}</p>
-          <p>Comment: {existingReview.comment}</p> */}
           <></>
-        </div>
       ) : (
-        <form onSubmit={handleReviewSubmit}>
+        <form onSubmit={handleReviewSubmit} className="review-form">
           <label>
             Rating:
             <select

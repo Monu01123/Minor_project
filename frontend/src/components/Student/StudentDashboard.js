@@ -1,10 +1,11 @@
-// src/components/StudentDashboard.js
 import React, { useEffect, useState } from 'react';
-// import { Link } from 'react-router-dom';
-import CourseCard from './CourseCard';
+import CourseCard from './CourseCard.js';
 import axios from 'axios';
 import { useAuth } from '../../Context/auth';
 import Navbar from '../Home/NavBar.js';
+import "./student.css"
+import Footer from '../Home/Footer.js';
+import noContent from './we.png';
 
 const StudentDashboard = () => {
   const [auth] = useAuth();
@@ -18,14 +19,13 @@ const StudentDashboard = () => {
       if (!userId) return;
 
       try {
-        const token = auth?.token; // Get the token from auth context
+        const token = auth?.token; 
 
         const response = await axios.get(`http://localhost:8080/api/enrollments/user/${userId}`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Add the token to the request headers
+            Authorization: `Bearer ${token}`, 
           },
         });
-
         setCourses(response.data);
       } catch (err) {
         console.error('Error fetching enrolled courses:', err);
@@ -44,22 +44,28 @@ const StudentDashboard = () => {
   return (
     <>
     <Navbar/>
-    <div>
+    <div className='enrollment-courses-page'>
       <h2>My Enrolled Courses</h2>
       {courses.length === 0 ? (
-        <p>No courses found</p>
+         <div className="no-content-student">
+         <div>
+           <img src={noContent} style={{width:"300px",height:"200px",position:"relative",right:"50px"}} alt="No content available" />
+         <p>You are not enrolled in any course.</p>
+         </div>
+         </div>
       ) : (
         <div className="course-list">
           {courses.map((course) => (
             <CourseCard 
               key={course.enrollment_id} 
               course={course} 
-              userId={userId} // Pass userId to CourseCard
+              userId={userId} 
             />
           ))}
         </div>
       )}
     </div>
+    <Footer/>
     </>
   );
 };

@@ -1,4 +1,3 @@
-// Footer.jsx
 import React from "react";
 import "./Footer.css";
 import logo from "./../Home/logo.png";
@@ -9,8 +8,6 @@ import Navbar from "./NavBar";
 const Footer = () => {
   return (
     <footer className="footer">
-      {/* <div className="footer-newsletter"> */}
-
       <div className="footer-links">
         <div className="footer-tag">
           <h2>
@@ -23,17 +20,16 @@ const Footer = () => {
         <div className="footer-menu">
           <h4>Menu</h4>
           <ul>
-            <li>About Us</li>
+            <li><NavLink to="/about" className="url">About Us</NavLink></li>
             <li>Contact Us</li>
             <li>
               <em>Community</em> (Vibes)
             </li>
           </ul>
         </div>
-        <div className="footer-support">
+        <div className="footer-menu">
           <h4>Support</h4>
           <ul>
-            {/* <li>Shipping & Returns</li> */}
             <li>Help & FAQ</li>
             <li>Terms & Conditions</li>
             <li><NavLink to="/policy" className="url">Privacy Policy</NavLink></li>

@@ -1,30 +1,35 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../axiosconfig";
 import { useParams, useLocation } from "react-router-dom";
-// import Navbar from "../Home/NavBar";
-import CatergoryMenu from "./CategoryMenu";
+import Navbar from "../Home/NavBar";
+import "./dashboard.css";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import Footer from "../Home/Footer.js";
 
 const ManageCourseContent = () => {
-  const { courseId } = useParams(); // Get courseId from URL params
+  const { courseId } = useParams();
   const [courseContent, setCourseContent] = useState([]);
-  const location = useLocation(); // Access the location object
-const [courseName, setCourseName] = useState(location.state?.courseName || ""); // State for course name
+  const location = useLocation();
+  const [courseName, setCourseName] = useState(
+    location.state?.courseName || ""
+  );
   const [newContent, setNewContent] = useState({
     title: "",
-    content_type: "",
+    content_type: "video",
     content_url: "",
     content_text: "",
     duration: "",
-    content_order: 0, // Start with 0, will be updated later
+    content_order: 0,
   });
   const [editingContent, setEditingContent] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
-  const [isUploading, setIsUploading] = useState(false); // For handling upload state
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     fetchCourseContent();
     if (!courseName) {
-      fetchCourseDetails(); // Fetch course details if courseName wasn't passed
+      fetchCourseDetails();
     }
   }, [courseId, courseName]);
 
@@ -38,14 +43,13 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
       const contentData = response.data;
       setCourseContent(contentData);
 
-      // Automatically set content order for new content
       if (contentData.length > 0) {
         const maxOrder = Math.max(
           ...contentData.map((item) => item.content_order)
         );
         setNewContent((prev) => ({ ...prev, content_order: maxOrder + 1 }));
       } else {
-        setNewContent((prev) => ({ ...prev, content_order: 1 })); // Start at 1 if no content exists
+        setNewContent((prev) => ({ ...prev, content_order: 1 }));
       }
     } catch (error) {
       console.error("Error fetching content:", error);
@@ -54,8 +58,7 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
 
   const fetchCourseDetails = async () => {
     try {
-      const response = await axiosInstance.get(`/api/courses/${courseId}`); // Adjust this endpoint as necessary
-      console.log("Course details:", response.data);
+      const response = await axiosInstance.get(`/api/courses/${courseId}`);
       setCourseName(response.data.name);
     } catch (error) {
       console.error("Error fetching course details:", error);
@@ -68,7 +71,7 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
   };
 
   const handleUpload = async () => {
-    if (!videoFile) return; // Ensure a file is selected
+    if (!videoFile) return;
     setIsUploading(true);
 
     const formData = new FormData();
@@ -83,7 +86,7 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
       setNewContent((prev) => ({
         ...prev,
         content_url: response.data.videoUrl,
-      })); // Update content_url directly here
+      }));
       setIsUploading(false);
     } catch (error) {
       console.error("Error uploading video:", error);
@@ -93,7 +96,6 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
 
   const createContent = async (e) => {
     e.preventDefault();
-
     if (!newContent.content_url) {
       alert("Please upload the video first.");
       return;
@@ -112,8 +114,6 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
 
   const updateContent = async (e) => {
     e.preventDefault();
-
-    // Ensure a new video URL is provided for update
     if (!newContent.content_url) {
       alert("Please upload a new video for the update.");
       return;
@@ -121,7 +121,6 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
 
     const updatedContentData = {
       ...newContent,
-      // No need for content_url fallback; it must be provided
     };
 
     try {
@@ -160,77 +159,124 @@ const [courseName, setCourseName] = useState(location.state?.courseName || ""); 
       duration: "",
       content_order: 0,
     });
-    setVideoFile(null); // Reset video file
+    setVideoFile(null);
   };
 
   return (
     <>
-      <CatergoryMenu />
-      <div>
-        <h1>Manage Course Content for: {courseName}</h1> {/* Display course name */}
-        <h2>Content List</h2>
-        <ul>
-          {courseContent.map((content) => (
-            <li key={content.content_id}>
-              <h3>{content.title}</h3>
-              <button onClick={() => editContent(content)}>Edit</button>
-              <button onClick={() => deleteContent(content.content_id)}>
-                Delete
+      <Navbar />
+      <div className="manage-course-content">
+        <h1 className="title">
+          Manage Course Content for:
+          <br /> <h6>{courseName}</h6>
+        </h1>
+        <div>
+          <section className="content-list first-section">
+            <h2>Content List</h2>
+            <ul>
+              {courseContent.length === 0 ? (
+                <p style={{textAlign:"center"}}>
+                  No course content found for this course.
+                </p>
+              ) : (
+                <>
+                  {courseContent.map((content) => (
+                    <li
+                      key={content.content_id}
+                      className="instructor-content-item"
+                    >
+                      <h3>{content.title}</h3>
+                      <div>
+                        <button
+                          onClick={() => editContent(content)}
+                          className="instructor-edit-btn"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          onClick={() => deleteContent(content.content_id)}
+                          className="instructor-delete-btn"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </>
+              )}
+            </ul>
+          </section>
+
+          <section className="form-section instructor-course-edit">
+            <h2>{editingContent ? "Edit Content" : "Add New Content"}</h2>
+            <form
+              onSubmit={editingContent ? updateContent : createContent}
+              className="content-form"
+            >
+              <input
+                type="text"
+                name="title"
+                placeholder="Title"
+                value={newContent.title}
+                onChange={handleInputChange}
+                required
+              />
+              <input
+                type="text"
+                name="content_type"
+                placeholder="Content Type"
+                value={newContent.content_type}
+                onChange={handleInputChange}
+                readOnly
+              />
+
+              <div className="file-upload image-upload-courses-instructor">
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="video/*"
+                />
+                <button
+                  type="button"
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                  className="instructor-course-upload-btn"
+                >
+                  {isUploading ? "Uploading..." : "Upload Video"}
+                </button>
+              </div>
+              <textarea
+                name="content_text"
+                placeholder="Content Text"
+                value={newContent.content_text}
+                onChange={handleInputChange}
+              />
+              <input
+                type="number"
+                name="duration"
+                placeholder="Duration"
+                value={newContent.duration}
+                onChange={handleInputChange}
+              />
+              <input
+                type="number"
+                name="content_order"
+                placeholder="Content Order"
+                value={newContent.content_order}
+                readOnly
+              />
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={isUploading}
+              >
+                {editingContent ? "Update Content" : "Add Content"}
               </button>
-            </li>
-          ))}
-        </ul>
-
-        <h2>{editingContent ? "Edit Content" : "Add New Content"}</h2>
-        <form onSubmit={editingContent ? updateContent : createContent}>
-          <input
-            type="text"
-            name="title"
-            placeholder="Title"
-            value={newContent.title}
-            onChange={handleInputChange}
-            required
-          />
-          <input
-            type="text"
-            name="content_type"
-            placeholder="Content Type"
-            value={newContent.content_type}
-            onChange={handleInputChange}
-            required
-          />
-          <div>
-            <input type="file" onChange={handleFileChange} accept="video/*" />
-            <button type="button" onClick={handleUpload} disabled={isUploading}>
-              {isUploading ? "Uploading..." : "Upload Video"}
-            </button>
-          </div>
-
-          <textarea
-            name="content_text"
-            placeholder="Content Text"
-            value={newContent.content_text}
-            onChange={handleInputChange}
-          />
-          <input
-            type="number"
-            name="duration"
-            placeholder="Duration"
-            value={newContent.duration}
-            onChange={handleInputChange}
-          />
-          <input
-            type="number"
-            name="content_order"
-            placeholder="Content Order"
-            value={newContent.content_order}
-            readOnly // Make it read-only since it's auto-incremented
-          />
-          <button type="submit" disabled={isUploading}>
-            {editingContent ? "Update Content" : "Add Content"}
-          </button>
-        </form>
+            </form>
+          </section>
+        </div>
       </div>
+      <Footer />
     </>
   );
 };

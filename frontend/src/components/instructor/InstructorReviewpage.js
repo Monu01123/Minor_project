@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../axiosconfig";
 import { useParams, useLocation } from "react-router-dom";
-import Navbar from "../Home/NavBar";
+import Navbar from "../Home/NavBar.js";
+import DeleteIcon from '@mui/icons-material/Delete';
+import Footer from "./../Home/Footer.js";
 
 const InstructorCourseReviewsPage = () => {
-  const { courseId, instructorId } = useParams(); 
+  const { courseId, instructorId } = useParams();
   const location = useLocation();
-  const courseTitle = location.state?.courseTitle || "Course"; // Get the course title
+  const courseTitle = location.state?.courseTitle || "Course";
   const [reviews, setReviews] = useState([]);
   const [error, setError] = useState(null);
 
@@ -38,13 +40,13 @@ const InstructorCourseReviewsPage = () => {
   return (
     <>
       <Navbar />
-      <div>
-        <h2>Reviews for {courseTitle}</h2>
-        {error && <p>{error}</p>}
+      <div className="reviews-container">
+        <h2 className="reviews-header">Reviews for {courseTitle}</h2>
+        {error && <p className="reviews-error">{error}</p>}
         {reviews.length === 0 ? (
-          <p>No reviews found for this course.</p>
+          <p className="no-reviews">No reviews found for this course.</p>
         ) : (
-          <table>
+          <table className="reviews-table">
             <thead>
               <tr>
                 <th>User ID</th>
@@ -56,12 +58,15 @@ const InstructorCourseReviewsPage = () => {
             <tbody>
               {reviews.map((review) => (
                 <tr key={review.review_id}>
-                  <td>{review.user_id}</td>
-                  <td>{review.rating}</td>
-                  <td>{review.comment}</td>
-                  <td>
-                    <button onClick={() => handleDeleteReview(review.review_id)}>
-                      Delete Review
+                  <td data-label="User ID">{review.user_id}</td>
+                  <td data-label="Rating">{review.rating}</td>
+                  <td data-label="Comment" className="instructor-comment"><span style={{width:"20px"}}></span>{review.comment}</td>
+                  <td data-label="Actions">
+                    <button
+                      className="delete-button"
+                      onClick={() => handleDeleteReview(review.review_id)}
+                    >
+                      <DeleteIcon />
                     </button>
                   </td>
                 </tr>
@@ -70,6 +75,7 @@ const InstructorCourseReviewsPage = () => {
           </table>
         )}
       </div>
+      <Footer />
     </>
   );
 };

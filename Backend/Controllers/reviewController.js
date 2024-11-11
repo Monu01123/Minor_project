@@ -5,7 +5,6 @@ export const createReview = async (req, res) => {
   const { user_id, course_id, rating, comment } = req.body;
 
   try {
-    // Check if the user has already submitted a review for this course
     const [existingReview] = await promisePool.query(
       `SELECT * FROM reviews WHERE user_id = ? AND course_id = ?`,
       [user_id, course_id]
@@ -15,13 +14,11 @@ export const createReview = async (req, res) => {
       return res.status(400).json({ message: 'You can only submit one review per course.' });
     }
 
-    // Insert the new review into the reviews table
     const [result] = await promisePool.query(
       `INSERT INTO reviews (user_id, course_id, rating, comment) VALUES (?, ?, ?, ?)`,
       [user_id, course_id, rating, comment]
     );
 
-    // Calculate the new average rating for the course
     const [averageRatingResult] = await promisePool.query(
       `SELECT AVG(rating) AS average_rating FROM reviews WHERE course_id = ?`,
       [course_id]
@@ -33,7 +30,6 @@ export const createReview = async (req, res) => {
 
     console.log('New Average Rating:', newAverageRating);
 
-    // Update the course's average rating in the courses table
     const updateResult = await promisePool.query(
       `UPDATE courses SET average_rating = ? WHERE course_id = ?`,
       [newAverageRating, course_id]
@@ -44,10 +40,10 @@ export const createReview = async (req, res) => {
     res.status(201).json({
       message: 'Review created and course rating updated successfully',
       review_id: result.insertId,
-      newAverageRating: newAverageRating // Optionally, format the average rating
+      newAverageRating: newAverageRating
     });
   } catch (error) {
-    console.error('Error during review creation:', error); // Enhanced logging
+    console.error('Error during review creation:', error);
     res.status(500).json({ message: 'Error creating review and updating course rating' });
   }
 };
@@ -104,16 +100,46 @@ export const deleteReview = async (req, res) => {
   const { reviewId } = req.params;
 
   try {
-    const [result] = await promisePool.query(`DELETE FROM reviews WHERE review_id = ?`, [reviewId]);
+    // Retrieve the course_id for the review being deleted
+    const [review] = await promisePool.query(
+      `SELECT course_id FROM reviews WHERE review_id = ?`,
+      [reviewId]
+    );
 
-    if (result.affectedRows === 0) {
+    if (review.length === 0) {
       return res.status(404).json({ message: 'Review not found' });
     }
 
-    res.json({ message: 'Review deleted successfully' });
+    const courseId = review[0].course_id;
+
+    // Delete the review
+    const [deleteResult] = await promisePool.query(
+      `DELETE FROM reviews WHERE review_id = ?`,
+      [reviewId]
+    );
+
+    if (deleteResult.affectedRows === 0) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    // Recalculate the average rating for the course
+    const [ratings] = await promisePool.query(
+      `SELECT AVG(rating) AS averageRating FROM reviews WHERE course_id = ?`,
+      [courseId]
+    );
+
+    const newAverageRating = ratings[0].averageRating || 0;
+
+    // Update the course's average rating
+    await promisePool.query(
+      `UPDATE courses SET average_rating = ? WHERE course_id = ?`,
+      [newAverageRating, courseId]
+    );
+
+    res.json({ message: 'Review deleted and course rating updated successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error deleting review' });
+    res.status(500).json({ message: 'Error deleting review or updating course rating' });
   }
 };
 

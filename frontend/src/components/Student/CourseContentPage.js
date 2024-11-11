@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
+import ReactPlayer from "react-player";
 import "./CourseContentPage.css";
 import { useAuth } from "../../Context/auth.js";
 import Navbar from "../Home/NavBar.js";
+import noContent from "./no-content.png";
+import jsPDF from 'jspdf'
+import img from './Certificate1.png';
 
 const CourseContentPage = () => {
   const { courseId } = useParams();
@@ -11,10 +15,13 @@ const CourseContentPage = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [watchedContentIds, setWatchedContentIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [error, setError] = useState(null);
-  const videoRef = useRef(null);
   const [auth] = useAuth();
   const [isVideoWatched, setIsVideoWatched] = useState(false);
+  const playerRef = useRef(null);
+  const location = useLocation();
+  const courseName = location.state?.courseName;
 
   useEffect(() => {
     const fetchCourseContent = async () => {
@@ -28,11 +35,9 @@ const CourseContentPage = () => {
             },
           }
         );
-
         console.log("Course Content Response:", response.data);
         setCourseContent(response.data);
-        const firstVideo = response.data[0]?.content_url;
-        setSelectedVideo(firstVideo || null);
+        setSelectedVideo(response.data[0]?.content_url || null);
       } catch (err) {
         console.error("Error fetching course content:", err);
         setError("Error fetching course content");
@@ -42,12 +47,9 @@ const CourseContentPage = () => {
     };
 
     const fetchWatchedVideos = async () => {
-      try {
-        if (!auth?.user?.user_id) {
-          console.warn("User ID not available, skipping fetchWatchedVideos.");
-          return;
-        }
+      if (!auth?.user?.user_id) return;
 
+      try {
         const token = auth.token;
         const response = await axios.get(
           `http://localhost:8080/api/video/track/${auth.user.user_id}/${courseId}`,
@@ -58,15 +60,12 @@ const CourseContentPage = () => {
           }
         );
 
-        // Check if there are results and populate watchedContentIds
-        if (response.data && response.data.length > 0) {
+        if (response.data) {
           const contentIds = new Set(
             response.data.map((item) => item.content_id)
           );
           console.log("Watched Content IDs:", contentIds);
           setWatchedContentIds(contentIds);
-        } else {
-          console.log("No watched videos found for this user and course.");
         }
       } catch (err) {
         console.error("Error fetching watched videos:", err);
@@ -81,26 +80,60 @@ const CourseContentPage = () => {
   }, [courseId, auth]);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.load();
-      setIsVideoWatched(false); // Reset watch status for new video
-    }
-  }, [selectedVideo]);
+    const checkCompletion = async () => {
+      if (!auth?.user?.user_id) return;
 
-  const handleTimeUpdate = () => {
-    const video = videoRef.current;
-    if (video) {
-      const watchedPercentage = (video.currentTime / video.duration) * 100;
-      if (watchedPercentage >= 50 && !isVideoWatched) {
-        setIsVideoWatched(true);
-        const contentItem = courseContent.find(
-          (content) => content.content_url === selectedVideo
+      try {
+        const response = await axios.post(
+          "http://localhost:8080/api/check-completion",
+          {
+            userId: auth.user.user_id,
+            courseId,
+          }
         );
-        if (contentItem) {
-          markVideoAsWatched(contentItem.content_id); // Pass content_id instead of URL
-        }
+        console.log("Course completion response:", response.data);
+        setIsCompleted(response.data.completed);
+      } catch (error) {
+        console.error("Error checking course completion:", error);
+        setError("Error checking course completion");
       }
+    };
+
+    checkCompletion();
+  }, [auth, courseId]);
+
+
+  const name = auth?.user?.full_name; 
+  const course = courseName; 
+  
+  const generateCertificate = () => {
+    // Create a new jsPDF instance
+    const doc = new jsPDF();
+  
+    // Add background image
+    doc.addImage(img, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+  
+    // Add recipient name
+    doc.setFontSize(36);
+    doc.setFont('helvetica'); 
+    doc.text(name, 105, 160, { align: 'center' }); 
+
+    doc.setFontSize(15);
+    doc.text("instructor", 122, 178.5);
+  
+    doc.setFontSize(20);
+    doc.text(course, 105, 195, { align: 'center' });
+  
+    doc.save(`${name}-${course}.pdf`);
+  };
+
+  const handleProgress = ({ played }) => {
+    if (played >= 0.5 && !isVideoWatched) {
+      setIsVideoWatched(true);
+      const contentItem = courseContent.find(
+        (content) => content.content_url === selectedVideo
+      );
+      if (contentItem) markVideoAsWatched(contentItem.content_id);
     }
   };
 
@@ -111,8 +144,8 @@ const CourseContentPage = () => {
         "http://localhost:8080/api/video/track",
         {
           userId: auth.user.user_id,
-          courseId: courseId,
-          contentId: contentId, // Send content_id instead of video URL
+          courseId,
+          contentId,
         },
         {
           headers: {
@@ -121,20 +154,25 @@ const CourseContentPage = () => {
         }
       );
       console.log("Video marked as watched");
+      setWatchedContentIds((prev) => new Set(prev).add(contentId));
     } catch (error) {
       console.error("Error marking video as watched:", error);
       setError("Error updating video watch status");
     }
   };
 
-  // Conditional rendering based on loading state, error state, or empty courseContent
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
   if (courseContent.length === 0)
     return (
       <>
         <Navbar />
-        <p>No content available for this course.</p>;
+        <div className="no-content-student">
+          <div>
+            <img src={noContent} alt="No content available" />
+            <p>No content available for this course.</p>
+          </div>
+        </div>
       </>
     );
 
@@ -142,15 +180,39 @@ const CourseContentPage = () => {
     <>
       <Navbar />
       <div className="course-content-page">
+        <div className="video-player">
+          {selectedVideo ? (
+            <ReactPlayer
+              ref={playerRef}
+              url={selectedVideo}
+              controls
+              width="100%"
+              height="auto"
+              onProgress={handleProgress}
+              config={{
+                file: {
+                  attributes: {
+                    controlsList: "nodownload",
+                  },
+                },
+              }}
+            />
+          ) : (
+            <p>No video selected</p>
+          )}
+        </div>
+
         <div className="content-list">
-          <h3>Course Content</h3>
+          <h3>{courseName ? `${courseName}` : "Course Content"}</h3>
+          {isCompleted && <button onClick={() => generateCertificate()} className="download-certificate">Get Certificate</button>}
           <ul>
             {courseContent.map((content) => (
               <li
                 key={content.content_id}
                 className={
-                  content.content_url === selectedVideo ? "active" : ""
+                  content.content_url === selectedVideo ? "active selected-list-items" : "selected-list-items"
                 }
+                
                 onClick={() => {
                   if (content.content_url) {
                     setSelectedVideo(content.content_url);
@@ -159,42 +221,16 @@ const CourseContentPage = () => {
                   }
                 }}
                 style={{
-                  cursor: content.content_url ? "pointer" : "not-allowed",
-                  opacity: content.content_url ? 1 : 0.5,
-                  textDecoration: watchedContentIds.has(content.content_id)
-                    ? "underline"
+                  cursor: "pointer",
+                  borderBottom: watchedContentIds.has(content.content_id)
+                    ? "4px solid red"
                     : "none",
-                  textDecorationColor: watchedContentIds.has(content.content_id)
-                    ? "red"
-                    : "initial",
                 }}
               >
                 {content.title}
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="video-player">
-          {selectedVideo ? (
-            <video
-              ref={videoRef}
-              width="100%"
-              height="auto"
-              controls
-              onTimeUpdate={handleTimeUpdate} // Call handleTimeUpdate as the video plays
-              onError={(e) => {
-                console.error("Video loading error:", e.nativeEvent);
-                setError("Error loading video");
-              }}
-            >
-              <source src={selectedVideo} type="video/mp4" />
-              Your browser does not support the video tag.{" "}
-              <a href={selectedVideo}>Download Video</a>
-            </video>
-          ) : (
-            <p>No video selected</p>
-          )}
         </div>
       </div>
     </>

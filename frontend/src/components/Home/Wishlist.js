@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useAuth } from "../../Context/auth.js"; 
+import { useAuth } from "../../Context/auth.js";
 import Navbar from "./NavBar.js";
-import { useWishlist } from "./WishlistContext.js"; // Import the useWishlist hook
-
-
+import { useWishlist } from "./WishlistContext.js";
+import { useCart } from "./CartContext.js";
+import cartImage from "./chat.png";
+import Footer from "./Footer.js";
+import "./Cart.css";
 
 const Wishlist = () => {
   const { updateWishlistCount } = useWishlist();
+  const { updateCartCount } = useCart();
   const [wishlistItems, setWishlistItems] = useState([]);
   const [auth] = useAuth(); // Use the useAuth hook to get user data
 
@@ -39,11 +42,13 @@ const Wishlist = () => {
         }
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          console.warn("No wishlist items found for this user, setting to empty array.");
-          setWishlistItems([]); 
+          console.warn(
+            "No wishlist items found for this user, setting to empty array."
+          );
+          setWishlistItems([]);
         } else {
           console.error("Error fetching wishlist items:", error);
-          setWishlistItems([]); 
+          setWishlistItems([]);
         }
       }
     };
@@ -54,7 +59,7 @@ const Wishlist = () => {
       console.warn("Auth not ready or user not logged in.");
     }
   }, [auth]);
-  
+
   const handleRemoveFromWishlist = async (wishlistItemId) => {
     try {
       const userId = auth?.user?.user_id;
@@ -74,7 +79,7 @@ const Wishlist = () => {
         }
       );
       const updatedWishlistItems = wishlistItems.filter(
-        (item) => item.wishlist_id !== wishlistItemId 
+        (item) => item.wishlist_id !== wishlistItemId
       );
       setWishlistItems(updatedWishlistItems);
 
@@ -89,7 +94,7 @@ const Wishlist = () => {
   const handleMoveToCart = async (wishlistItem) => {
     try {
       const userId = auth?.user?.user_id;
-      const token = auth?.token; // Get the token from auth context
+      const token = auth?.token;
 
       if (!userId) {
         console.error("User is not logged in.");
@@ -100,18 +105,18 @@ const Wishlist = () => {
         `http://localhost:8080/api/cart`,
         {
           user_id: userId,
-          course_id: wishlistItem.course_id, 
+          course_id: wishlistItem.course_id,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       await handleRemoveFromWishlist(wishlistItem.wishlist_id);
-      const newWishlistCount = await fetchWishlistCount(); // You'll need to define this method to fetch the updated cart count
-      updateWishlistCount(newWishlistCount); // Update the cart count in Navbar
+
+      await updateCartCount(userId, token);
     } catch (error) {
       console.error("Error moving course to cart:", error);
       alert("Error moving course to cart.");
@@ -120,30 +125,47 @@ const Wishlist = () => {
 
   const fetchWishlistCount = async () => {
     if (auth?.user) {
-        try {
-            const response = await axios.get(`http://localhost:8080/api/wishlist/count/${auth.user.user_id}`);
-            updateWishlistCount(response.data.wishlist_count || 0); // Update cart count
-        } catch (error) {
-            console.error("Error fetching cart count:", error.message);
-        }
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/wishlist/count/${auth.user.user_id}`
+        );
+        updateWishlistCount(response.data.wishlist_count || 0); // Update cart count
+      } catch (error) {
+        console.error("Error fetching cart count:", error.message);
+      }
     }
   };
-  
+
   fetchWishlistCount();
 
   return (
     <>
       <Navbar />
-      <div className="wishlist-container">
+      <div className="cart-container">
         <h1>Your Wishlist</h1>
         {wishlistItems.length === 0 ? (
-          <p>Wishlist is empty</p>
+          <div className="empty-cart">
+            <img src={cartImage} alt="Empty Cart" />
+            <p>Your Wishlist is empty</p>
+          </div>
         ) : (
-          <div>
+          <div className="cart-main-container">
+          <div className="cart-list">
             <ul>
               {wishlistItems.map((item) => (
-                <li key={item.wishlist_id}>
+                <li key={item.wishlist_id} className="cart-item-list">
+                  <img src={item.image_url} alt={item.course_title} />
                   <h3>{item.course_title}</h3>
+                  <div>
+                  <button
+                    onClick={() => handleRemoveFromWishlist(item.wishlist_id)}
+                  >
+                    Remove
+                  </button>
+                  <button onClick={() => handleMoveToCart(item)}>
+                    Move to Cart
+                  </button>
+                  </div>
                   <p>
                     {item.discount_price ? (
                       <>
@@ -154,20 +176,14 @@ const Wishlist = () => {
                       <span>₹ {Math.round(item.price)}</span>
                     )}
                   </p>
-                  <button
-                    onClick={() => handleRemoveFromWishlist(item.wishlist_id)}
-                  >
-                    Remove
-                  </button>
-                  <button onClick={() => handleMoveToCart(item)}>
-                    Move to Cart
-                  </button>
                 </li>
               ))}
             </ul>
           </div>
+          </div>
         )}
       </div>
+      <Footer />
     </>
   );
 };

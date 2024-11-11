@@ -16,11 +16,11 @@ import Stripe from "stripe";
 import bodyParser from "body-parser";
 import { promisePool } from "./db.js";
 import uploadRouter from "./routes/uploadRoute.js";
-// import { serialize } from "mongodb";
 import { clearCart } from "./Controllers/cartController.js";
 import uploadImageRouter from "./routes/upload.js";
 import search from "./routes/SearchRoute.js";
 import vediotrack from "./routes/vediotrack.js";
+import certificateRoute from "./routes/certificateRoute.js";
 
 dotenv.config();
 
@@ -88,7 +88,6 @@ app.post(
   }
 );
 
-// Use the rest of the middleware and routes after the webhook
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -114,6 +113,7 @@ app.use("/api/upload-image", uploadImageRouter);
 app.get("/profile", authenticateToken, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user });
 });
+app.use("/api", certificateRoute);
 
 app.post("/create-checkout-session", async (req, res) => {
   const { items, userId, courseIds } = req.body; // Ensure courseIds is destructured

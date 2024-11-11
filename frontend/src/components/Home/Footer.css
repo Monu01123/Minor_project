@@ -1,5 +1,5 @@
 .footer {
-  background-color: #181818;
+  background-color: #2D2F31;
   padding: 40px;
   color: whitesmoke;
   position: relative;
@@ -15,40 +15,50 @@
 
 .footer-tag {
   width: 30%;
-  color: whitesmoke;
+  color: rgb(238, 230, 230);
   font-size: 1vw;
 }
 
-.footer-menu,
-.footer-support {
+.footer-menu {
   text-align: left;
 }
 
-.footer-menu h4,
-.footer-support h4 {
+.footer-menu h4 {
   font-size: 1em;
   font-weight: bold;
   margin-bottom: 10px;
   color: white;
 }
 
-.footer-menu ul,
-.footer-support ul {
+.footer-menu ul {
   list-style: none;
   padding: 0;
   font-size: 0.9em;
 }
 
-.footer-menu li,
-.footer-support li {
+.footer-menu li {
   margin-bottom: 5px;
   cursor: pointer;
 }
 
+.footer-menu ul li{
+  background-color: transparent !important;
+  text-align: left !important;
+  padding: 5px 0px;
+  color: rgb(238, 231, 231);
+  font-weight: bolder;
+}
+
 .url {
   text-decoration: none;
-  color: black;
+  color: white;
 }
+
+.footer-tag h1{
+  font-size: 1rem; 
+  padding-left: 10px; 
+}
+
 
 @media (max-width: 800px) {
   .footer-tag {

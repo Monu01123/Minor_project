@@ -4,11 +4,14 @@ import axiosInstance from "../../axiosconfig.js";
 import { useAuth } from "../../Context/auth.js";
 import "./dashboard.css";
 import GradeIcon from "@mui/icons-material/Grade";
-import "../Home/HomePage.css";
-import CategoryMenu from "./CategoryMenu.js";
+import Navbar from "../Home/NavBar.js";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import Footer from "../Home/Footer.js";
 
 const InstructorDashboard = () => {
   const [auth] = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [newCourse, setNewCourse] = useState({
     title: "",
@@ -23,27 +26,29 @@ const InstructorDashboard = () => {
   const [editingCourse, setEditingCourse] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
-  const [categories, setCategories] = useState([]); // To store categories
-
+  const [categories, setCategories] = useState([]);
   const instructorId = auth?.user?.user_id;
 
   useEffect(() => {
     if (instructorId) {
       fetchCourses();
-      fetchCategories(); // Fetch categories on load
+      fetchCategories();
     }
   }, [auth, instructorId]);
 
   const fetchCourses = () => {
     axiosInstance
       .get(`/api/courses/instructor/${instructorId}`)
-      .then((response) => setCourses(response.data))
-      .catch((error) => console.error("Error fetching courses:", error));
+      .then((response) => setCourses(response.data || []))
+      .catch((error) => {
+        console.error("Error fetching courses:", error);
+        setCourses([]); // Ensure courses is always an array on error
+      });
   };
 
   const fetchCategories = () => {
     axiosInstance
-      .get("/categories") // Adjust endpoint as necessary
+      .get("/categories")
       .then((response) => setCategories(response.data))
       .catch((error) => console.error("Error fetching categories:", error));
   };
@@ -146,73 +151,103 @@ const InstructorDashboard = () => {
 
   return (
     <>
-      <CategoryMenu />
-      <div className="dashboard-container">
-        <h1 className="dashboard-heading">Instructor Dashboard</h1>
-
-        <div className="course-list-section">
-          <h2>Your Courses</h2>
+      <Navbar />
+      <div className="instructor-dashboard">
+        <h1 className="instructor-dashboard-heading">Your Courses</h1>
+        <div className="">
           {courses.length === 0 ? (
-            <p>No courses found</p>
+            <div className="manage-no-course">
+              <h4>No courses found</h4>
+            </div>
           ) : (
-            <div className="course-list">
-              {courses.map((course) => (
-                <div className="course-card" key={course.course_id}>
-                  <img
-                    src={course.image_url}
-                    alt={course.title}
-                    className="course-image"
-                  />
-                  <div className="course-main-details">
-                    <p>
-                      <strong>{course.title}</strong>
-                    </p>
-                    <p style={{ display: "flex", alignItems: "center" }}>
-                      <strong>
-                        {course.average_rating}{" "}
-                        <GradeIcon sx={{ color: "orange", fontSize: 20 }} />
-                      </strong>
-                    </p>
-                    <p>
-                      <strong>Level:</strong> {course.level}
-                    </p>
-                    <p>
-                      <strong>Language:</strong> {course.language}
-                    </p>
-                    <div className="card-actions">
-                      <button
-                        className="edit-btn"
-                        onClick={() => editCourse(course)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteCourse(course.course_id)}
-                      >
-                        Delete
-                      </button>
-                      <NavLink
-                        to={`/instructor/${instructorId}/course/${course.course_id}/reviews`}
-                        state={{ courseTitle: course.title }}
-                      >
-                        Reviews
-                      </NavLink>
+            <div className="instructor-course-card-list">
+              {Array.isArray(courses) &&
+                courses.map((course) => (
+                  <div
+                    className="instructor-course-card"
+                    key={course.course_id}
+                  >
+                    <img
+                      src={course.image_url}
+                      alt={course.title}
+                      className="course-image"
+                    />
+                    <div className="instructor-card-items">
+                      <span className="title">
+                        <strong>
+                          {course?.title?.length > 18
+                            ? `${course.title.substring(0, 18)}...`
+                            : course?.title || ""}
+                        </strong>
+                        <button
+                          className="instructor-course-edit-btn"
+                          onClick={() => editCourse(course)}
+                        >
+                          <EditOutlinedIcon className="editbtn" />
+                        </button>
+                      </span>
+                      <div className="instructor-course-details">
+                        <strong className="rating">
+                          {course.average_rating !== undefined &&
+                          !isNaN(Number(course.average_rating))
+                            ? Number(course.average_rating) === 0
+                              ? 0
+                              : Number(course.average_rating).toFixed(1)
+                            : "N/A"}
+                          <GradeIcon sx={{ color: "orange", fontSize: 20 }} />
+                        </strong>
+                        <span>{course.level}</span>
+                        <span>{course.language}</span>
+                      </div>
+                      <div className="instructor-courses-btns">
+                        <button
+                          className="instructor-course-delete-btn"
+                          onClick={() => deleteCourse(course.course_id)}
+                        >
+                          <DeleteOutlineOutlinedIcon />
+                        </button>
+                        <button
+                          className="instructor-course-other-btn"
+                          onClick={() =>
+                            navigate(
+                              `/instructor/${instructorId}/course/${course.course_id}/reviews`,
+                              {
+                                state: { courseTitle: course.title },
+                              }
+                            )
+                          }
+                        >
+                          Reviews
+                        </button>
+
+                        <button
+                          className="instructor-course-other-btn"
+                          onClick={() =>
+                            navigate(
+                              `/instructor/course/${course.course_id}/content`,
+                              {
+                                state: { courseName: course.title },
+                              }
+                            )
+                          }
+                        >
+                          Manage Content
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
 
-        <div className="course-form-section">
+        <div className="instructor-course-edit">
           <h2>{editingCourse ? "Edit Course" : "Create New Course"}</h2>
           <form
-            className="course-form"
+            className=""
             onSubmit={editingCourse ? updateCourse : createCourse}
           >
-            <div className="form-group">
+            <div className="">
               <label htmlFor="title">Title</label>
               <input
                 type="text"
@@ -223,7 +258,7 @@ const InstructorDashboard = () => {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="">
               <label htmlFor="description">Description</label>
               <textarea
                 id="description"
@@ -233,7 +268,7 @@ const InstructorDashboard = () => {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="">
               <label htmlFor="price">Price</label>
               <input
                 type="number"
@@ -244,7 +279,7 @@ const InstructorDashboard = () => {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="">
               <label htmlFor="discount_price">Discount Price</label>
               <input
                 type="number"
@@ -254,7 +289,7 @@ const InstructorDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
+            <div className="image-upload-courses-instructor">
               <input type="file" onChange={handleFileChange} accept="image/*" />
               <button onClick={handleUpload}>Upload Image</button>
               {imageUrl && (
@@ -264,7 +299,7 @@ const InstructorDashboard = () => {
                 </div>
               )}
             </div>
-            <div className="form-group">
+            <div className="">
               <label htmlFor="category_id">Category</label>
               <select
                 id="category_id"
@@ -286,7 +321,7 @@ const InstructorDashboard = () => {
                 ))}
               </select>
             </div>
-            <div className="form-group">
+            <div className="">
               <label htmlFor="level">Level</label>
               <select
                 id="level"
@@ -303,16 +338,21 @@ const InstructorDashboard = () => {
                 <option value="advanced">Advanced</option>
               </select>
             </div>
-            <div className="form-group">
+            <div className="">
               <label htmlFor="language">Language</label>
-              <input
-                type="text"
+              <select
                 id="language"
                 name="language"
                 value={newCourse.language}
                 onChange={handleChange}
                 required
-              />
+              >
+                <option value="" disabled>
+                  Select a language
+                </option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+              </select>
             </div>
             <button type="submit">
               {editingCourse ? "Update Course" : "Create Course"}
@@ -320,6 +360,7 @@ const InstructorDashboard = () => {
           </form>
         </div>
       </div>
+      <Footer />
     </>
   );
 };

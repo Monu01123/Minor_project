@@ -13,18 +13,14 @@ const CourseContainer = () => {
   const navigate = useNavigate(); // To programmatically navigate
 
   useEffect(() => {
-    // Check if category_id is undefined or null, then default to 1
     const activeCategoryId = category_id || 1;
 
     const fetchCourses = async () => {
       try {
         const response = await axiosInstance.get(`/api/courses/category/${activeCategoryId}`);
         const data = response.data;
-
-        // If the response is an object, convert it to an array
         const coursesArray = Array.isArray(data) ? data : [data];
-
-        setCourses(coursesArray); // Set the fetched courses as an array
+        setCourses(coursesArray); 
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -33,7 +29,7 @@ const CourseContainer = () => {
     };
 
     if (!category_id) {
-      navigate(`/courses/1`); // Redirect to category 1 if no category_id in URL
+      navigate(`/courses/1`); 
     }
 
     fetchCourses();

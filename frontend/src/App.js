@@ -66,14 +66,14 @@ function App() {
           }
         />
         <Route path="/wishlist" element={<User><Wishlist /></User>} />
-        <Route
+        {/* <Route
           path="/instructor-dashboard"
           element={
             <InstructorRoute>
               <Instructormenu />
             </InstructorRoute>
           }
-        />
+        /> */}
         <Route
           path="/instructor-dashboard/category"
           element={
@@ -90,14 +90,14 @@ function App() {
             </InstructorRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/instructor/courses"
           element={
             <InstructorRoute>
               <InstructorCourses />
             </InstructorRoute>
           }
-        />
+        /> */}
         <Route
           path="/instructor/course/:courseId/content"
           element={

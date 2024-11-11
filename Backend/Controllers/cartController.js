@@ -53,7 +53,8 @@ export const getCartByUserId = async (req, res) => {
                 c.title AS course_title, 
                 c.price, 
                 c.discount_price, 
-                ci.added_at
+                ci.added_at,
+                c.image_url
              FROM cart_items ci
              JOIN courses c ON ci.course_id = c.course_id
              WHERE ci.cart_id = ?`,
