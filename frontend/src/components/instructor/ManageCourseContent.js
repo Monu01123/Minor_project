@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../axiosconfig";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, NavLink } from "react-router-dom";
 import Navbar from "../Home/NavBar";
 import "./dashboard.css";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -21,10 +21,12 @@ const ManageCourseContent = () => {
     content_text: "",
     duration: "",
     content_order: 0,
+    file_url: "",
   });
   const [editingContent, setEditingContent] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
 
   useEffect(() => {
     fetchCourseContent();
@@ -70,7 +72,46 @@ const ManageCourseContent = () => {
     setNewContent({ ...newContent, [name]: value });
   };
 
-  const handleUpload = async () => {
+  const uploadFile = async (file, type) => {
+    const formData = new FormData();
+    formData.append(type, file);
+
+    try {
+      const response = await axiosInstance.post(`/api/pdfupload`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data[`${type}Url`];
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+      throw error;
+    }
+  };
+
+  const handleUpload = async (type) => {
+    const file = type === "video" ? videoFile : pdfFile;
+    if (!file) {
+      alert(`Please select a ${type} file to upload.`);
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const uploadedUrl = await uploadFile(file, type);
+      console.log(uploadedUrl);
+      setNewContent((prev) => ({
+        ...prev,
+        file_url: uploadedUrl,
+      }));
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploade = async () => {
     if (!videoFile) return;
     setIsUploading(true);
 
@@ -158,8 +199,37 @@ const ManageCourseContent = () => {
       content_text: "",
       duration: "",
       content_order: 0,
+      pdf_url: "",
     });
     setVideoFile(null);
+  };
+
+  // Event handlers for drag-and-drop
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Necessary to allow drop
+    e.stopPropagation();
+    e.target.classList.add("drag-over");
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.classList.remove("drag-over");
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.classList.remove("drag-over");
+
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles[0]) {
+      setVideoFile(droppedFiles[0]);
+    }
+  };
+
+  const handlePdfChange = (event) => {
+    setPdfFile(event.target.files[0]);
   };
 
   return (
@@ -175,7 +245,7 @@ const ManageCourseContent = () => {
             <h2>Content List</h2>
             <ul>
               {courseContent.length === 0 ? (
-                <p style={{textAlign:"center"}}>
+                <p style={{ textAlign: "center" }}>
                   No course content found for this course.
                 </p>
               ) : (
@@ -199,6 +269,9 @@ const ManageCourseContent = () => {
                         >
                           <DeleteIcon />
                         </button>
+                        <NavLink to={`/quiz/${content.content_id}`}>
+                          quiz
+                        </NavLink>
                       </div>
                     </li>
                   ))}
@@ -227,24 +300,49 @@ const ManageCourseContent = () => {
                 placeholder="Content Type"
                 value={newContent.content_type}
                 onChange={handleInputChange}
-                readOnly
+                // readOnly
               />
 
-              <div className="file-upload image-upload-courses-instructor">
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept="video/*"
-                />
-                <button
-                  type="button"
-                  onClick={handleUpload}
-                  disabled={isUploading}
-                  className="instructor-course-upload-btn"
-                >
-                  {isUploading ? "Uploading..." : "Upload Video"}
-                </button>
+              <div
+                className="file-upload-container"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="drag-drop-box">
+                  <p>Drag and drop your video here</p>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="video/*"
+                    hidden
+                    id="file-input"
+                  />
+                  <label htmlFor="file-input">or click to upload</label>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => handleUploade()}
+                disabled={isUploading}
+                className="instructor-course-upload-btn"
+              >
+                {isUploading ? "Uploading..." : "Upload Video"}
+              </button>
+
+              <input
+                type="file"
+                onChange={handlePdfChange}
+                accept="application/pdf"
+              />
+              <button
+                type="button"
+                onClick={() => handleUpload("pdf")}
+                disabled={isUploading}
+              >
+                {"Upload PDF"}
+              </button>
               <textarea
                 name="content_text"
                 placeholder="Content Text"

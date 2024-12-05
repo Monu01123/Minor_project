@@ -49,10 +49,6 @@
   box-sizing: border-box;
 }
 
-.selected-list-items:hover{
-  background-color: #d4d8dd;
-}
-
 @media screen and (max-width: 1100px){
   .course-content-page{
    flex-direction: column;

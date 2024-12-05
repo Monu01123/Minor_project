@@ -1,10 +1,10 @@
 DROP DATABASE IF EXISTS elearning;
-create database elearning;
-use elearning;
+create database elearning1;
+use elearning1;
 
-select * from users;
+select * from enrollments;
 select * from courses;
-select * from course_content;
+
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(50) NOT NULL,
@@ -17,16 +17,6 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
-
--- CREATE TABLE otp (
---    id INT AUTO_INCREMENT PRIMARY KEY,
---    user_id INT NOT NULL,
---    otp VARCHAR(6) NOT NULL,
---    otp_expiry BIGINT NOT NULL,
---    FOREIGN KEY (user_id) REFERENCES users(user_id)  -- Use 'user_id' to match the column in 'users'
--- );
-select * from otp;
 
 CREATE TABLE categories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -65,7 +55,7 @@ CREATE TABLE course_content (
     course_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     content_type ENUM('video') NOT NULL, 
-    content_url VARCHAR(255), 
+    content_url VARCHAR(1000), 
     content_text TEXT, 
     duration INT DEFAULT 0, 
     content_order INT NOT NULL, 
@@ -75,10 +65,13 @@ CREATE TABLE course_content (
     INDEX idx_course (course_id),
     INDEX idx_content_order (content_order)
 );
-use elearning;
+
+use elearning1;
+ALTER TABLE course_content
+ADD COLUMN file_url VARCHAR(1000) AFTER content_text;
+
 select * from course_content;
-select * from video_track;
-select * from courses;
+
 
 CREATE TABLE video_track (
     user_id INT NOT NULL,
@@ -91,8 +84,7 @@ CREATE TABLE video_track (
     UNIQUE (user_id, course_id, content_id) -- Ensure each user can only have one entry per content in a course
 );
 
-
- 
+ select * from enrollments;
 CREATE TABLE enrollments (
     enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -114,6 +106,7 @@ CREATE TABLE reviews (
     FOREIGN KEY (course_id) REFERENCES courses(course_id)
 );
 
+
 CREATE TABLE wishlist (
     wishlist_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -122,7 +115,6 @@ CREATE TABLE wishlist (
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (course_id) REFERENCES courses(course_id)
 );
-
 -- Cart Table
 CREATE TABLE cart (
     cart_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -144,77 +136,39 @@ CREATE TABLE cart_items (
 
 CREATE TABLE quizzes (
     quiz_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT NOT NULL,
+    content_id INT NOT NULL,  -- Links to course_content (specific video)
     title VARCHAR(255) NOT NULL,
-    description TEXT,
+    question TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id)
-);
-
-CREATE TABLE quiz_questions (
-    question_id INT AUTO_INCREMENT PRIMARY KEY,
-    quiz_id INT NOT NULL,
-    question_text TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id)
-);
-
-CREATE TABLE quiz_options (
-    option_id INT AUTO_INCREMENT PRIMARY KEY,
-    question_id INT NOT NULL,
-    option_text TEXT NOT NULL,
-    is_correct BOOLEAN NOT NULL,
-    FOREIGN KEY (question_id) REFERENCES quiz_questions(question_id)
-);
-
-CREATE TABLE quiz_attempts (
-    attempt_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    quiz_id INT NOT NULL,
-    score FLOAT,
-    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id)
+    FOREIGN KEY (content_id) REFERENCES course_content(content_id) ON DELETE CASCADE
 );
 
 CREATE TABLE quiz_answers (
     answer_id INT AUTO_INCREMENT PRIMARY KEY,
-    question_id INT NOT NULL,
+    quiz_id INT NOT NULL,
     answer_text TEXT NOT NULL,
-    is_correct BOOLEAN NOT NULL,
-    FOREIGN KEY (question_id) REFERENCES quiz_questions(question_id)
+    is_correct BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id) ON DELETE CASCADE
 );
 
-CREATE TABLE payments (
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,       
-    user_id INT NOT NULL,                            
-    course_id INT NOT NULL,                         
-    amount DECIMAL(10, 2) NOT NULL,                  
-    payment_method ENUM('credit_card', 'debit_card', 'paypal', 'bank_transfer', 'other') NOT NULL, 
-    payment_status ENUM('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending', 
-    transaction_id VARCHAR(255),                     
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
+CREATE TABLE quiz_timestamps (
+    quiz_timestamp_id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_id INT NOT NULL,
+    timestamp INT NOT NULL,  
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(quiz_id) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS otp;
-
-use elearning;
-select * from users;
-select * from courses;
-select * from categories;
+use elearning1;
 select * from course_content;
-select * from cart_items;
-select * from cart;
-select * from wishlist;
-select * from enrollments;
-select * from payments;
-select * from reviews;
-SELECT average_rating FROM courses WHERE course_id = 4;
--- SELECT password_hash FROM users WHERE email = "john@example.com";
+select * from quizzes;
+select * from quiz_answers;
+select * from quiz_timestamps;
 
-SELECT * FROM courses WHERE title LIKE '%python%';
-
+SELECT q.quiz_id, q.title, q.question, qt.timestamp
+         FROM quizzes q
+         JOIN quiz_timestamps qt ON q.quiz_id = qt.quiz_id
+         WHERE q.content_id = 51;
+         
+SELECT * FROM quizzes WHERE content_id = 51;
+SELECT * FROM quiz_timestamps WHERE quiz_id IN (SELECT quiz_id FROM quizzes WHERE content_id = 51);

@@ -220,6 +220,10 @@ const Navbar = () => {
 
           {userRole === "admin" && (
             <>
+            <NavLink to="/student-dashboard" className="nav-link">
+                My <br />
+                Courses
+              </NavLink>
               <NavLink to="/instructor-dashboard/category" className="nav-link">
                 Admin Dashboard
               </NavLink>

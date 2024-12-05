@@ -14,7 +14,6 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PlayCircleOutlinedIcon from "@mui/icons-material/PlayCircleOutlined";
 import Footer from "./Footer.js";
 
-
 const CourseContent = () => {
   const { courseId } = useParams();
   const { updateCartCount } = useCart();
@@ -225,9 +224,13 @@ const CourseContent = () => {
 
   const handleOpenCourseContentPage = () => {
     navigate(`/courses-content/${courseId}`, {
-      state: { courseName: courseDetails?.title },
+      state: { 
+        courseName: courseDetails?.title,
+        instructorName: courseDetails?.instructor_name 
+      },
     });
   };
+  
 
   const fetchCartCount = async () => {
     if (auth?.user) {
@@ -274,9 +277,10 @@ const CourseContent = () => {
               <p className="course-instructor">
                 Created by <span>{courseDetails.instructor_name}</span>
               </p>
-              {courseDetails.discount_price && (
+              {/* {courseDetails.discount_price && ( */}
+              {/* <p>₹{courseDetails.price}</p> */}
                 <p>₹{courseDetails.discount_price}</p>
-              )}
+              {/* )} */}
               {enrolled ? (
                 <>
                   <p></p>
@@ -358,7 +362,7 @@ const CourseContent = () => {
 
         <div className="course-content-list">
           <h1>Course Content</h1>
-          {error && <p className="error-message">{error}</p>}
+          {/* {error && <p className="error-message">{error}</p>} */}
           {loading ? (
             <p>Loading content...</p>
           ) : (

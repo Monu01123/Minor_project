@@ -334,11 +334,6 @@
     width: 80% !important;
     margin-left: 20px;
   }
-
-  .certificate-content h2 {
-    font-size: 15px !important;
-  }
-
 }
 
 .certificate-content {
@@ -441,7 +436,9 @@
   padding-bottom: 2rem;
   border-radius: 8px;
   width: 60vw;
+  height: 130vh;
   margin-top: 50px;
+  box-sizing: border-box;
 }
 
 @media screen and (max-width: 1100px) {
@@ -462,6 +459,10 @@
   }
   .Review-flex section:first-child{
     margin-left: 20px;
+  }
+
+  .reviews-container {
+    height: 164vh;
   }
 }
 

@@ -21,17 +21,17 @@ const Footer = () => {
           <h4>Menu</h4>
           <ul>
             <li><NavLink to="/about" className="url">About Us</NavLink></li>
-            <li>Contact Us</li>
+            <li><NavLink to="/contact" className="url">Contact Us</NavLink></li>
             <li>
-              <em>Community</em> (Vibes)
+              <em><NavLink to="/community" className="url">Community</NavLink></em> (Vibes)
             </li>
           </ul>
         </div>
         <div className="footer-menu">
           <h4>Support</h4>
           <ul>
-            <li>Help & FAQ</li>
-            <li>Terms & Conditions</li>
+          <li><NavLink to="/faq" className="url">Help & FAQ</NavLink></li>
+            <li><NavLink to="/terms" className="url">Terms & TermsAndConditions</NavLink></li>
             <li><NavLink to="/policy" className="url">Privacy Policy</NavLink></li>
             <li>Contact</li>
           </ul>

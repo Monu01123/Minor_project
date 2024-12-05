@@ -6,8 +6,9 @@ import "./CourseContentPage.css";
 import { useAuth } from "../../Context/auth.js";
 import Navbar from "../Home/NavBar.js";
 import noContent from "./no-content.png";
-import jsPDF from 'jspdf'
-import img from './Certificate1.png';
+import jsPDF from "jspdf";
+import img from "./Certificate1.png";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 const CourseContentPage = () => {
   const { courseId } = useParams();
@@ -21,7 +22,7 @@ const CourseContentPage = () => {
   const [isVideoWatched, setIsVideoWatched] = useState(false);
   const playerRef = useRef(null);
   const location = useLocation();
-  const courseName = location.state?.courseName;
+  const { courseName, instructorName } = location.state || {};
 
   useEffect(() => {
     const fetchCourseContent = async () => {
@@ -102,28 +103,34 @@ const CourseContentPage = () => {
     checkCompletion();
   }, [auth, courseId]);
 
+  const name = auth?.user?.full_name;
+  const course = courseName;
 
-  const name = auth?.user?.full_name; 
-  const course = courseName; 
-  
   const generateCertificate = () => {
     // Create a new jsPDF instance
     const doc = new jsPDF();
-  
+
     // Add background image
-    doc.addImage(img, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-  
+    doc.addImage(
+      img,
+      "PNG",
+      0,
+      0,
+      doc.internal.pageSize.getWidth(),
+      doc.internal.pageSize.getHeight()
+    );
+
     // Add recipient name
     doc.setFontSize(36);
-    doc.setFont('helvetica'); 
-    doc.text(name, 105, 160, { align: 'center' }); 
+    doc.setFont("helvetica");
+    doc.text(name, 105, 160, { align: "center" });
 
     doc.setFontSize(15);
-    doc.text("instructor", 122, 178.5);
-  
+    doc.text(instructorName, 122, 178.5);
+
     doc.setFontSize(20);
-    doc.text(course, 105, 195, { align: 'center' });
-  
+    doc.text(course, 105, 195, { align: "center" });
+
     doc.save(`${name}-${course}.pdf`);
   };
 
@@ -161,7 +168,7 @@ const CourseContentPage = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  // if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
   if (courseContent.length === 0)
     return (
@@ -204,33 +211,58 @@ const CourseContentPage = () => {
 
         <div className="content-list">
           <h3>{courseName ? `${courseName}` : "Course Content"}</h3>
-          {isCompleted && <button onClick={() => generateCertificate()} className="download-certificate">Get Certificate</button>}
+          {isCompleted && (
+            <button
+              onClick={() => generateCertificate()}
+              className="download-certificate"
+            >
+              Get Certificate
+            </button>
+          )}
           <ul>
-            {courseContent.map((content) => (
-              <li
-                key={content.content_id}
-                className={
-                  content.content_url === selectedVideo ? "active selected-list-items" : "selected-list-items"
+            {courseContent.map((content) => {
+              const isActive = content.content_url === selectedVideo;
+              const isWatched = watchedContentIds.has(content.content_id);
+              const handleClick = () => {
+                if (content.content_url) {
+                  setSelectedVideo(content.content_url);
+                } else {
+                  alert("You need to enroll to access this content.");
                 }
-                
-                onClick={() => {
-                  if (content.content_url) {
-                    setSelectedVideo(content.content_url);
-                  } else {
-                    alert("You need to enroll to access this content.");
-                  }
-                }}
-                style={{
-                  cursor: "pointer",
-                  borderBottom: watchedContentIds.has(content.content_id)
-                    ? "4px solid red"
-                    : "none",
-                }}
-              >
-                {content.title}
-              </li>
-            ))}
+              };
+
+              return (
+                <li
+                  key={content.content_id}
+                  className={`selected-list-items ${isActive ? "active" : ""}`}
+                  onClick={handleClick}
+                  style={{
+                    cursor: "pointer",
+                    borderBottom: isWatched ? "4px solid red" : "none",
+                  }}
+                >
+                  <span>{content.title}</span>
+                  {content.file_url && (
+                    <a
+                      href={content.file_url}
+                      download="desired-name.pdf" 
+                      id="pdfLink"
+                      style={{
+                        display: "block",
+                        padding: "10px 0",
+                        textDecoration: "none",
+                        color: "red",
+                      }}
+                    >
+                      <PictureAsPdfIcon />  
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
+        </div>
+        <div>
         </div>
       </div>
     </>

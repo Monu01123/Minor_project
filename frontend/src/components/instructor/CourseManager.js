@@ -39,10 +39,14 @@ const InstructorDashboard = () => {
   const fetchCourses = () => {
     axiosInstance
       .get(`/api/courses/instructor/${instructorId}`)
-      .then((response) => setCourses(response.data || []))
+      .then((response) => {
+        const courses = response.data || [];
+        console.log("Fetched courses:", courses);
+        setCourses(courses);
+      })
       .catch((error) => {
         console.error("Error fetching courses:", error);
-        setCourses([]); // Ensure courses is always an array on error
+        setCourses([]);
       });
   };
 
@@ -126,6 +130,33 @@ const InstructorDashboard = () => {
 
   const handleFileChange = (event) => {
     setImageFile(event.target.files[0]);
+    const imagePreviewUrl = URL.createObjectURL(event.target.files[0]);
+    setImageUrl(imagePreviewUrl);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.classList.add("drag-over");
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.classList.remove("drag-over");
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.target.classList.remove("drag-over");
+
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles[0]) {
+      setImageFile(droppedFiles[0]);
+      const imagePreviewUrl = URL.createObjectURL(droppedFiles[0]);
+      setImageUrl(imagePreviewUrl);
+    }
   };
 
   const handleUpload = async () => {
@@ -153,7 +184,14 @@ const InstructorDashboard = () => {
     <>
       <Navbar />
       <div className="instructor-dashboard">
-        <h1 className="instructor-dashboard-heading">Your Courses</h1>
+        <h1 className="instructor-dashboard-heading">
+          Your Courses |{" "}
+          <span>
+            <NavLink to="/dashboard" className="url earnings">
+              MY Earnings
+            </NavLink>
+          </span>
+        </h1>
         <div className="">
           {courses.length === 0 ? (
             <div className="manage-no-course">
@@ -279,6 +317,7 @@ const InstructorDashboard = () => {
                 required
               />
             </div>
+
             <div className="">
               <label htmlFor="discount_price">Discount Price</label>
               <input
@@ -289,16 +328,34 @@ const InstructorDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="image-upload-courses-instructor">
-              <input type="file" onChange={handleFileChange} accept="image/*" />
-              <button onClick={handleUpload}>Upload Image</button>
-              {imageUrl && (
-                <div>
-                  <h2>Uploaded Image:</h2>
-                  <img src={imageUrl} alt="Uploaded" width="300" />
-                </div>
-              )}
+            <div
+              className="image-upload-courses-instructor drop-zone"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <p>Drag and drop an image here or click to upload</p>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: "none" }}
+                id="image-input"
+              />
+              <label htmlFor="image-input" className="upload-btn">
+                Choose File
+              </label>
             </div>
+            {imageUrl && (
+              <div>
+                <h2>Uploaded Image:</h2>
+                <img src={imageUrl} alt="Uploaded" width="300" />
+              </div>
+            )}
+            <button type="button" onClick={handleUpload}>
+              Upload Image
+            </button>
+
             <div className="">
               <label htmlFor="category_id">Category</label>
               <select

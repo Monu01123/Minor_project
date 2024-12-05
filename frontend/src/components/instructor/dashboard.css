@@ -12,6 +12,21 @@
   border: 2px solid #033f4d;
 }
 
+.earnings{
+  padding: 5px;
+  background-color: white;
+  color: black;
+  font-size: 1rem;
+  border-radius: 3px;
+}
+
+
+
+.earnings:hover{
+  background-color: #033f4d;
+  color: white;
+}
+
 .manage-course-content p{
   padding: 5px 10px;
 }

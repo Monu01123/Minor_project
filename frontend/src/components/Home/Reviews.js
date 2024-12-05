@@ -113,7 +113,14 @@ const Reviews = () => {
                       style={{ width: `${percentage}%` }}
                     ></div>
                   </div>
-                  <span className="percentage">{percentage.toFixed(1)}%</span>
+                  <span className="percentage">
+                    {isNaN(percentage) ||
+                    percentage === null ||
+                    percentage === undefined
+                      ? "0"
+                      : percentage.toFixed(1)}
+                    %
+                  </span>
                 </div>
               ))}
             </div>

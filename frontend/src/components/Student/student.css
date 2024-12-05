@@ -71,7 +71,7 @@
   }
   
   .enrollment-card{
-    height:auto;
+    height:min-content;
   }
 
   .enrollment-card-link{

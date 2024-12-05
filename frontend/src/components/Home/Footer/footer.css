@@ -1,0 +1,320 @@
+.contact-info-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Title and Description */
+  .contact-info-title {
+    font-size: 2.5em;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .contact-info-description {
+    font-size: 1em;
+    color: #666;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  /* Contact Details */
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  /* Contact Section */
+  .contact-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  .contact-section-title {
+    font-size: 1.5em;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+  
+  .contact-text {
+    font-size: 1em;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  /* Contact Item Links */
+  .contact-item a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .contact-item a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Address */
+  .contact-address {
+    font-style: normal;
+    color: #333;
+  }
+  
+  /* Social Links */
+  .social-links {
+    display: flex;
+    gap: 10px;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .social-links li a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .social-links li a:hover {
+    text-decoration: underline;
+  }
+
+  /* //------------terms---------- */
+
+  
+
+/* Terms and Conditions Container */
+.terms-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  /* Title */
+  .terms-title {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Introduction Text */
+  .terms-intro {
+    font-size: 1.1em;
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  
+  /* Section Title */
+  .section-title {
+    font-size: 1.5em;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+  
+  /* Section Text */
+  .section-text {
+    font-size: 1em;
+    margin-bottom: 20px;
+  }
+  
+  /* List Styling */
+  .terms-list {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-top: 0;
+    color: #333;
+  }
+  
+
+  /* FAQ */
+
+  
+
+/* FAQ Container */
+.faq-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  /* Title and Introduction */
+  .faq-title {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .faq-intro {
+    font-size: 1.1em;
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  
+  /* FAQ Section */
+  .faq-section {
+    margin-bottom: 30px;
+  }
+  
+  .faq-category {
+    font-size: 1.8em;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+  
+  /* FAQ Item */
+  .faq-item {
+    margin-bottom: 15px;
+  }
+  
+  .faq-question {
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .faq-question:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* FAQ Toggle Icon */
+  .faq-toggle {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  /* FAQ Answer */
+  .faq-answer {
+    font-size: 1em;
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    color: #555;
+  }
+  
+
+  /* Community page  */
+
+  
+
+/* Community Page Container */
+.community-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f4f4f9;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  /* Page Title and Intro */
+  .community-title {
+    font-size: 2.5em;
+    text-align: center;
+    color: #333;
+  }
+  
+  .community-intro {
+    text-align: center;
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  
+  /* Community Section Styling */
+  .community-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .community-section-title {
+    font-size: 1.5em;
+    color: #007bff;
+    margin-bottom: 10px;
+  }
+  
+  .community-section-description {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 15px;
+  }
+  
+  /* Join Community Button */
+  .community-button {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .community-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Groups and Posts Styling */
+  .community-groups,
+  .community-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .community-group,
+  .community-post {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .community-group h3,
+  .community-post h4 {
+    margin: 0;
+    color: #007bff;
+  }
+  
+  .community-group p,
+  .community-post p {
+    margin: 5px 0 0;
+    color: #555;
+  }
+  
+  /* Community Guidelines */
+  .community-guidelines {
+    list-style-type: disc;
+    padding-left: 20px;
+    color: #555;
+    line-height: 1.6;
+  }
+  
