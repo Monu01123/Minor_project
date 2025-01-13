@@ -57,7 +57,7 @@ Create a .env file in the root of your project with the following variables:
     ENDPOINT_SECRET=""
 ```
 
-3. **Clone the repository:**
+3. **Install dependencies:**
 
    ```bash
    npm install
