@@ -1,13 +1,13 @@
-// import { BlobServiceClient } from '@azure/storage-blob';
-// import path from 'path';
+import { BlobServiceClient } from '@azure/storage-blob';
+import path from 'path';
 
-// const sasToken = process.env.SAS_TOKEN;
-// const accountName = process.env.VEDIO_ACCOUNT_NAME;
-// const containerName = process.env.CONTAINER_NAME;
+const sasToken = process.env.SAS_TOKEN;
+const accountName = process.env.VEDIO_ACCOUNT_NAME;
+const containerName = process.env.CONTAINER_NAME;
 
-// const blobServiceClient = new BlobServiceClient(
-//   `https://${accountName}.blob.core.windows.net?${sasToken}`
-// );
+const blobServiceClient = new BlobServiceClient(
+  `https://${accountName}.blob.core.windows.net?${sasToken}`
+);
 
 // export async function uploadVideo(filePath) {
 //   const containerClient = blobServiceClient.getContainerClient(containerName);

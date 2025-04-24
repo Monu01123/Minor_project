@@ -22,7 +22,6 @@ import uploadImageRouter from "./routes/upload.js";
 import search from "./routes/SearchRoute.js";
 import vediotrack from "./routes/vedioTrack.js";
 import certificateRoute from "./routes/certificateRoute.js";
-import quiz from "./routes/quizRoute.js"
 
 dotenv.config();
 
@@ -117,7 +116,6 @@ app.get("/profile", authenticateToken, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user });
 });
 app.use("/api", certificateRoute);
-app.use("/api",quiz);
 
 app.post("/create-checkout-session", async (req, res) => {
   const { items, userId, courseIds } = req.body; // Ensure courseIds is destructured
