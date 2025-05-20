@@ -5,6 +5,7 @@ import logo from "../Home/logo.png";
 import { useAuth } from "../../Context/auth.js";
 import Navbar from "../Home/NavBar.js";
 import axiosInstance from "../../axiosconfig.js";
+import toast, { Toaster } from "react-hot-toast";
 
 const Login = () => {
   const [auth, setAuth] = useAuth();
@@ -26,14 +27,26 @@ const Login = () => {
         token: response.data.token,
       });
 
+      toast.success('You are logged in!');
       localStorage.setItem("auth", JSON.stringify(response.data));
-      navigate("/");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (error) {
       if (error.response) {
         setErrorMessage(error.response.data.message || "Login failed");
       } else {
         setErrorMessage("Server error");
       }
+      toast.error('Invalid Credentials!',
+        {
+          style: {
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
+          },
+        }
+      );
     }
   };
 
@@ -47,7 +60,7 @@ const Login = () => {
 
   return (
     <>
-    <Navbar/>
+      <Navbar />
       <div className="main_register">
         <form onSubmit={handleLogin} className="register_form">
           <img src={logo} alt="logo" className="register_promo" />
@@ -101,6 +114,7 @@ const Login = () => {
             </button>
           </p>
         </form>
+        <Toaster position="bottom-right" reverseOrder={false} />
       </div>
     </>
   );

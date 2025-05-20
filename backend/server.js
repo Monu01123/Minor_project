@@ -22,7 +22,7 @@ import uploadImageRouter from "./routes/upload.js";
 import search from "./routes/SearchRoute.js";
 import vediotrack from "./routes/vedioTrack.js";
 import certificateRoute from "./routes/certificateRoute.js";
-
+import nodemailer from 'nodemailer';
 dotenv.config();
 
 const app = express();
@@ -67,7 +67,8 @@ app.post(
           // Clear the user's cart after successful payment
           await clearCart(userId); // Pass only the userId
           console.log(`Cart cleared for user ${userId}`);
-
+          await sendEnrollmentEmail("monumeena0112@gmail.com", courseIds);
+          console.log("Enrollment email sent successfully!");
           res
             .status(200)
             .send("User successfully enrolled in all courses and cart cleared");
@@ -88,6 +89,48 @@ app.post(
     }
   }
 );
+
+async function sendEnrollmentEmail(toEmail, courseIds) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "justryme8875@gmail.com",
+      pass: "yepl usyq ytuc wswg", // app password
+    },
+  });
+
+  const mailOptions = {
+    from: "justryme8875@gmail.com",
+    to: toEmail,
+    subject: "🎉 Course Enrollment Confirmation - SKillora",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #4CAF50;">Course Enrollment Confirmation</h2>
+        <p>Hi there,</p>
+        <p>Thank you for enrolling in our course(s)! We're excited to have you with us and hope you enjoy your learning journey.</p>
+  
+        <h4>🧠 Course(s) Enrolled:</h4>
+        <ul>
+          ${courseIds.split(',').map(id => `<li>Course ID: <strong>${id.trim()}</strong></li>`).join('')}
+        </ul>
+  
+        <p>You can now access your enrolled courses in your dashboard.</p>
+        <p>If you need any assistance, feel free to contact our support team at <a href="mailto:support@notmailme.com">support@notmailme.com</a>.</p>
+  
+        <p>Happy learning!<br/>Best regards,<br/><strong>The SKillora Team</strong></p>
+      </div>
+    `,
+  };
+  
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully!");
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+}
+
 
 app.use(
   cors({

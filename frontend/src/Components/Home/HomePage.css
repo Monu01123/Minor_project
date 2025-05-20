@@ -160,7 +160,7 @@
   font-size: larger;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 800px) {
   .course-content-section1 {
     display: none;
   }

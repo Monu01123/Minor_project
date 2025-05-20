@@ -8,6 +8,7 @@ import Navbar from "../Home/NavBar.js";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import Footer from "../Home/Footer.js";
+import { motion } from "framer-motion";
 
 const InstructorDashboard = () => {
   const [auth] = useAuth();
@@ -182,242 +183,249 @@ const InstructorDashboard = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="instructor-dashboard">
-        <h1 className="instructor-dashboard-heading">
-          Your Courses |{" "}
-          <span>
-            <NavLink to="/dashboard" className="url earnings">
-              MY Earnings
-            </NavLink>
-          </span>
-        </h1>
-        <div className="">
-          {courses.length === 0 ? (
-            <div className="manage-no-course">
-              <h4>No courses found</h4>
-            </div>
-          ) : (
-            <div className="instructor-course-card-list">
-              {Array.isArray(courses) &&
-                courses.map((course) => (
-                  <div
-                    className="instructor-course-card"
-                    key={course.course_id}
-                  >
-                    <img
-                      src={course.image_url}
-                      alt={course.title}
-                      className="course-image"
-                    />
-                    <div className="instructor-card-items">
-                      <span className="title">
-                        <strong>
-                          {course?.title?.length > 18
-                            ? `${course.title.substring(0, 18)}...`
-                            : course?.title || ""}
-                        </strong>
-                        <button
-                          className="instructor-course-edit-btn"
-                          onClick={() => editCourse(course)}
-                        >
-                          <EditOutlinedIcon className="editbtn" />
-                        </button>
-                      </span>
-                      <div className="instructor-course-details">
-                        <strong className="rating">
-                          {course.average_rating !== undefined &&
-                          !isNaN(Number(course.average_rating))
-                            ? Number(course.average_rating) === 0
-                              ? 0
-                              : Number(course.average_rating).toFixed(1)
-                            : "N/A"}
-                          <GradeIcon sx={{ color: "orange", fontSize: 20 }} />
-                        </strong>
-                        <span>{course.level}</span>
-                        <span>{course.language}</span>
-                      </div>
-                      <div className="instructor-courses-btns">
-                        <button
-                          className="instructor-course-delete-btn"
-                          onClick={() => deleteCourse(course.course_id)}
-                        >
-                          <DeleteOutlineOutlinedIcon />
-                        </button>
-                        <button
-                          className="instructor-course-other-btn"
-                          onClick={() =>
-                            navigate(
-                              `/instructor/${instructorId}/course/${course.course_id}/reviews`,
-                              {
-                                state: { courseTitle: course.title },
-                              }
-                            )
-                          }
-                        >
-                          Reviews
-                        </button>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <Navbar />
+        <div className="instructor-dashboard">
+          <h1 className="instructor-dashboard-heading">
+            Your Courses |{" "}
+            <span>
+              <NavLink to="/dashboard" className="url earnings">
+                MY Earnings
+              </NavLink>
+            </span>
+          </h1>
+          <div className="">
+            {courses.length === 0 ? (
+              <div className="manage-no-course">
+                <h4>No courses found</h4>
+              </div>
+            ) : (
+              <div className="instructor-course-card-list">
+                {Array.isArray(courses) &&
+                  courses.map((course) => (
+                    <div
+                      className="instructor-course-card"
+                      key={course.course_id}
+                    >
+                      <img
+                        src={course.image_url}
+                        alt={course.title}
+                        className="course-image"
+                      />
+                      <div className="instructor-card-items">
+                        <span className="title">
+                          <strong>
+                            {course?.title?.length > 18
+                              ? `${course.title.substring(0, 18)}...`
+                              : course?.title || ""}
+                          </strong>
+                          <button
+                            className="instructor-course-edit-btn"
+                            onClick={() => editCourse(course)}
+                          >
+                            <EditOutlinedIcon className="editbtn" />
+                          </button>
+                        </span>
+                        <div className="instructor-course-details">
+                          <strong className="rating">
+                            {course.average_rating !== undefined &&
+                            !isNaN(Number(course.average_rating))
+                              ? Number(course.average_rating) === 0
+                                ? 0
+                                : Number(course.average_rating).toFixed(1)
+                              : "N/A"}
+                            <GradeIcon sx={{ color: "orange", fontSize: 20 }} />
+                          </strong>
+                          <span>{course.level}</span>
+                          <span>{course.language}</span>
+                        </div>
+                        <div className="instructor-courses-btns">
+                          <button
+                            className="instructor-course-delete-btn"
+                            onClick={() => deleteCourse(course.course_id)}
+                          >
+                            <DeleteOutlineOutlinedIcon />
+                          </button>
+                          <button
+                            className="instructor-course-other-btn"
+                            onClick={() =>
+                              navigate(
+                                `/instructor/${instructorId}/course/${course.course_id}/reviews`,
+                                {
+                                  state: { courseTitle: course.title },
+                                }
+                              )
+                            }
+                          >
+                            Reviews
+                          </button>
 
-                        <button
-                          className="instructor-course-other-btn"
-                          onClick={() =>
-                            navigate(
-                              `/instructor/course/${course.course_id}/content`,
-                              {
-                                state: { courseName: course.title },
-                              }
-                            )
-                          }
-                        >
-                          Manage Content
-                        </button>
+                          <button
+                            className="instructor-course-other-btn"
+                            onClick={() =>
+                              navigate(
+                                `/instructor/course/${course.course_id}/content`,
+                                {
+                                  state: { courseName: course.title },
+                                }
+                              )
+                            }
+                          >
+                            Manage Content
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-
-        <div className="instructor-course-edit">
-          <h2>{editingCourse ? "Edit Course" : "Create New Course"}</h2>
-          <form
-            className=""
-            onSubmit={editingCourse ? updateCourse : createCourse}
-          >
-            <div className="">
-              <label htmlFor="title">Title</label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={newCourse.title}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={newCourse.description}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="">
-              <label htmlFor="price">Price</label>
-              <input
-                type="number"
-                id="price"
-                name="price"
-                value={newCourse.price}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="">
-              <label htmlFor="discount_price">Discount Price</label>
-              <input
-                type="number"
-                id="discount_price"
-                name="discount_price"
-                value={newCourse.discount_price}
-                onChange={handleChange}
-              />
-            </div>
-            <div
-              className="image-upload-courses-instructor drop-zone"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <p>Drag and drop an image here or click to upload</p>
-              <input
-                type="file"
-                onChange={handleFileChange}
-                accept="image/*"
-                style={{ display: "none" }}
-                id="image-input"
-              />
-              <label htmlFor="image-input" className="upload-btn">
-                Choose File
-              </label>
-            </div>
-            {imageUrl && (
-              <div>
-                <h2>Uploaded Image:</h2>
-                <img src={imageUrl} alt="Uploaded" width="300" />
+                  ))}
               </div>
             )}
-            <button type="button" onClick={handleUpload}>
-              Upload Image
-            </button>
+          </div>
 
-            <div className="">
-              <label htmlFor="category_id">Category</label>
-              <select
-                id="category_id"
-                name="category_id"
-                value={newCourse.category_id}
-                onChange={handleChange}
-                required
+          <div className="instructor-course-edit">
+            <h2>{editingCourse ? "Edit Course" : "Create New Course"}</h2>
+            <form
+              className=""
+              onSubmit={editingCourse ? updateCourse : createCourse}
+            >
+              <div className="">
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={newCourse.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={newCourse.description}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="">
+                <label htmlFor="price">Price</label>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  value={newCourse.price}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="">
+                <label htmlFor="discount_price">Discount Price</label>
+                <input
+                  type="number"
+                  id="discount_price"
+                  name="discount_price"
+                  value={newCourse.discount_price}
+                  onChange={handleChange}
+                />
+              </div>
+              <div
+                className="image-upload-courses-instructor drop-zone"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
               >
-                <option value="" disabled>
-                  Select a category
-                </option>
-                {categories.map((category) => (
-                  <option
-                    key={category.category_id}
-                    value={category.category_id}
-                  >
-                    {category.name}
+                <p>Drag and drop an image here or click to upload</p>
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  id="image-input"
+                />
+                <label htmlFor="image-input" className="upload-btn">
+                  Choose File
+                </label>
+              </div>
+              {imageUrl && (
+                <div>
+                  <h2>Uploaded Image:</h2>
+                  <img src={imageUrl} alt="Uploaded" width="300" />
+                </div>
+              )}
+              <button type="button" onClick={handleUpload}>
+                Upload Image
+              </button>
+
+              <div className="">
+                <label htmlFor="category_id">Category</label>
+                <select
+                  id="category_id"
+                  name="category_id"
+                  value={newCourse.category_id}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled>
+                    Select a category
                   </option>
-                ))}
-              </select>
-            </div>
-            <div className="">
-              <label htmlFor="level">Level</label>
-              <select
-                id="level"
-                name="level"
-                value={newCourse.level}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  Select a level
-                </option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
-            <div className="">
-              <label htmlFor="language">Language</label>
-              <select
-                id="language"
-                name="language"
-                value={newCourse.language}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  Select a language
-                </option>
-                <option value="English">English</option>
-                <option value="Hindi">Hindi</option>
-              </select>
-            </div>
-            <button type="submit">
-              {editingCourse ? "Update Course" : "Create Course"}
-            </button>
-          </form>
+                  {categories.map((category) => (
+                    <option
+                      key={category.category_id}
+                      value={category.category_id}
+                    >
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="">
+                <label htmlFor="level">Level</label>
+                <select
+                  id="level"
+                  name="level"
+                  value={newCourse.level}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled>
+                    Select a level
+                  </option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+              <div className="">
+                <label htmlFor="language">Language</label>
+                <select
+                  id="language"
+                  name="language"
+                  value={newCourse.language}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled>
+                    Select a language
+                  </option>
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi</option>
+                </select>
+              </div>
+              <button type="submit">
+                {editingCourse ? "Update Course" : "Create Course"}
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
-      <Footer />
+        <Footer />
+      </motion.div>
     </>
   );
 };

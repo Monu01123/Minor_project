@@ -6,6 +6,7 @@ import "./dashboard.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import Footer from "../Home/Footer.js";
+import { motion } from "framer-motion";
 
 const ManageCourseContent = () => {
   const { courseId } = useParams();
@@ -164,119 +165,126 @@ const ManageCourseContent = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="manage-course-content">
-        <h1 className="title">
-          Manage Course Content for:
-          <br /> <h6>{courseName}</h6>
-        </h1>
-        <div>
-          <section className="content-list first-section">
-            <h2>Content List</h2>
-            <ul>
-              {courseContent.length === 0 ? (
-                <p style={{textAlign:"center"}}>
-                  No course content found for this course.
-                </p>
-              ) : (
-                <>
-                  {courseContent.map((content) => (
-                    <li
-                      key={content.content_id}
-                      className="instructor-content-item"
-                    >
-                      <h3>{content.title}</h3>
-                      <div>
-                        <button
-                          onClick={() => editContent(content)}
-                          className="instructor-edit-btn"
-                        >
-                          <EditIcon />
-                        </button>
-                        <button
-                          onClick={() => deleteContent(content.content_id)}
-                          className="instructor-delete-btn"
-                        >
-                          <DeleteIcon />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </>
-              )}
-            </ul>
-          </section>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <Navbar />
+        <div className="manage-course-content">
+          <h1 className="title">
+            Manage Course Content for:
+            <br /> <h6>{courseName}</h6>
+          </h1>
+          <div>
+            <section className="content-list first-section">
+              <h2>Content List</h2>
+              <ul>
+                {courseContent.length === 0 ? (
+                  <p style={{ textAlign: "center" }}>
+                    No course content found for this course.
+                  </p>
+                ) : (
+                  <>
+                    {courseContent.map((content) => (
+                      <li
+                        key={content.content_id}
+                        className="instructor-content-item"
+                      >
+                        <h3>{content.title}</h3>
+                        <div>
+                          <button
+                            onClick={() => editContent(content)}
+                            className="instructor-edit-btn"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            onClick={() => deleteContent(content.content_id)}
+                            className="instructor-delete-btn"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </>
+                )}
+              </ul>
+            </section>
 
-          <section className="form-section instructor-course-edit">
-            <h2>{editingContent ? "Edit Content" : "Add New Content"}</h2>
-            <form
-              onSubmit={editingContent ? updateContent : createContent}
-              className="content-form"
-            >
-              <input
-                type="text"
-                name="title"
-                placeholder="Title"
-                value={newContent.title}
-                onChange={handleInputChange}
-                required
-              />
-              <input
-                type="text"
-                name="content_type"
-                placeholder="Content Type"
-                value={newContent.content_type}
-                onChange={handleInputChange}
-                readOnly
-              />
-
-              <div className="file-upload image-upload-courses-instructor">
+            <section className="form-section instructor-course-edit">
+              <h2>{editingContent ? "Edit Content" : "Add New Content"}</h2>
+              <form
+                onSubmit={editingContent ? updateContent : createContent}
+                className="content-form"
+              >
                 <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept="video/*"
+                  type="text"
+                  name="title"
+                  placeholder="Title"
+                  value={newContent.title}
+                  onChange={handleInputChange}
+                  required
+                />
+                <input
+                  type="text"
+                  name="content_type"
+                  placeholder="Content Type"
+                  value={newContent.content_type}
+                  onChange={handleInputChange}
+                  readOnly
+                />
+
+                <div className="file-upload image-upload-courses-instructor">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="video/*"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="instructor-course-upload-btn"
+                  >
+                    {isUploading ? "Uploading..." : "Upload Video"}
+                  </button>
+                </div>
+                <textarea
+                  name="content_text"
+                  placeholder="Content Text"
+                  value={newContent.content_text}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type="number"
+                  name="duration"
+                  placeholder="Duration"
+                  value={newContent.duration}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type="number"
+                  name="content_order"
+                  placeholder="Content Order"
+                  value={newContent.content_order}
+                  readOnly
                 />
                 <button
-                  type="button"
-                  onClick={handleUpload}
+                  type="submit"
+                  className="submit-btn"
                   disabled={isUploading}
-                  className="instructor-course-upload-btn"
                 >
-                  {isUploading ? "Uploading..." : "Upload Video"}
+                  {editingContent ? "Update Content" : "Add Content"}
                 </button>
-              </div>
-              <textarea
-                name="content_text"
-                placeholder="Content Text"
-                value={newContent.content_text}
-                onChange={handleInputChange}
-              />
-              <input
-                type="number"
-                name="duration"
-                placeholder="Duration"
-                value={newContent.duration}
-                onChange={handleInputChange}
-              />
-              <input
-                type="number"
-                name="content_order"
-                placeholder="Content Order"
-                value={newContent.content_order}
-                readOnly
-              />
-              <button
-                type="submit"
-                className="submit-btn"
-                disabled={isUploading}
-              >
-                {editingContent ? "Update Content" : "Add Content"}
-              </button>
-            </form>
-          </section>
+              </form>
+            </section>
+          </div>
         </div>
-      </div>
-      <Footer />
+        <Footer />
+      </motion.div>
     </>
   );
 };

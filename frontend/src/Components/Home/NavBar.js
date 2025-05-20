@@ -144,7 +144,7 @@ const Navbar = () => {
         )}
       </div>
 
-      <div className="menu-icon">
+      <div className="menu-icon" style={{ cursor: "pointer" }}>
         <MenuIcon onClick={() => setIsMenuOpen(!isMenuOpen)} />
       </div>
 

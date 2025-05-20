@@ -1,5 +1,5 @@
 import { promisePool } from '../db.js'; 
-
+import nodemailer from 'nodemailer';
 
 export const enrollUserInCourse = async (req, res) => {
   const { user_id, course_id } = req.body;
@@ -18,6 +18,22 @@ export const enrollUserInCourse = async (req, res) => {
       `INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)`,
       [user_id, course_id]
     );
+    // console.log("😂😂😂😂----sdfg===1324343432432432431243243243124");
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'justryme8875@gmail.com',
+        pass: 'yepl usyq ytuc wswg',
+      },
+    });
+
+    const mailOptions = {
+      from: 'justryme8875@gmail.com',
+      to: 'monumeena0112@gmail.com',
+      subject: 'Course Enrollment Confirmation',
+      text: `You have successfully enrolled in course ID: ${course_id}`,
+    };
+    await transporter.sendMail(mailOptions);
 
     res.status(201).json({
       message: 'User enrolled successfully',

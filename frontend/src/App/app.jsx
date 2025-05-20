@@ -31,12 +31,15 @@ import Faq from "../Components/Home/Footer/Faq.js";
 import CommunityPage from "../Components/Home/Footer/CommunityPage.js";
 import Dashboard from "../Components/instructor/Dashboard.js";
 import Quiz from "../Components/instructor/quizManager.js";
+import { AnimatePresence } from 'framer-motion';
+
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
+          <AnimatePresence>
           <Routes>
             <Route path="*" element={<HomePage />} />
             <Route path="/" element={<HomePage />} />
@@ -136,6 +139,7 @@ function App() {
               element={<InstructorCourseReviewsPage />}
             />
           </Routes>
+          </AnimatePresence>
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>

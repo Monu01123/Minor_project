@@ -7,6 +7,8 @@ import { useCart } from "./CartContext.js";
 import cartImage from "./chat.png";
 import Footer from "./Footer.js";
 import "./Cart.css";
+import toast, { Toaster } from "react-hot-toast";
+import { motion } from "framer-motion";
 
 const Wishlist = () => {
   const { updateWishlistCount } = useWishlist();
@@ -113,9 +115,8 @@ const Wishlist = () => {
           },
         }
       );
-
       await handleRemoveFromWishlist(wishlistItem.wishlist_id);
-
+      toast.success("Course moved to cart!");
       await updateCartCount(userId, token);
     } catch (error) {
       console.error("Error moving course to cart:", error);
@@ -140,50 +141,60 @@ const Wishlist = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="cart-container">
-        <h1>Your Wishlist</h1>
-        {wishlistItems.length === 0 ? (
-          <div className="empty-cart">
-            <img src={cartImage} alt="Empty Cart" />
-            <p>Your Wishlist is empty</p>
-          </div>
-        ) : (
-          <div className="cart-main-container">
-          <div className="cart-list">
-            <ul>
-              {wishlistItems.map((item) => (
-                <li key={item.wishlist_id} className="cart-item-list">
-                  <img src={item.image_url} alt={item.course_title} />
-                  <h3>{item.course_title}</h3>
-                  <div>
-                  <button
-                    onClick={() => handleRemoveFromWishlist(item.wishlist_id)}
-                  >
-                    Remove
-                  </button>
-                  <button onClick={() => handleMoveToCart(item)}>
-                    Move to Cart
-                  </button>
-                  </div>
-                  <p>
-                    {item.discount_price ? (
-                      <>
-                        <del>₹{Math.round(item.price)}</del>{" "}
-                        <span>₹{Math.round(item.discount_price)}</span>
-                      </>
-                    ) : (
-                      <span>₹ {Math.round(item.price)}</span>
-                    )}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-          </div>
-        )}
-      </div>
-      <Footer />
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <Navbar />
+        <div className="cart-container">
+          <Toaster position="bottom-right" reverseOrder={true} />
+          <h1>Your Wishlist</h1>
+          {wishlistItems.length === 0 ? (
+            <div className="empty-cart">
+              <img src={cartImage} alt="Empty Cart" />
+              <p>Your Wishlist is empty</p>
+            </div>
+          ) : (
+            <div className="cart-main-container">
+              <div className="cart-list">
+                <ul>
+                  {wishlistItems.map((item) => (
+                    <li key={item.wishlist_id} className="cart-item-list">
+                      <img src={item.image_url} alt={item.course_title} />
+                      <h3>{item.course_title}</h3>
+                      <div>
+                        <button
+                          onClick={() =>
+                            handleRemoveFromWishlist(item.wishlist_id)
+                          }
+                        >
+                          Remove
+                        </button>
+                        <button onClick={() => handleMoveToCart(item)}>
+                          Move to Cart
+                        </button>
+                      </div>
+                      <p>
+                        {item.discount_price ? (
+                          <>
+                            <del>₹{Math.round(item.price)}</del>{" "}
+                            <span>₹{Math.round(item.discount_price)}</span>
+                          </>
+                        ) : (
+                          <span>₹ {Math.round(item.price)}</span>
+                        )}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+        <Footer />
+      </motion.div>
     </>
   );
 };

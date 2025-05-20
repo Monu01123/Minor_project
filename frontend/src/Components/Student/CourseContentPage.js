@@ -6,8 +6,9 @@ import "./CourseContentPage.css";
 import { useAuth } from "../../Context/auth.js";
 import Navbar from "../Home/NavBar.js";
 import noContent from "./no-content.png";
-import jsPDF from 'jspdf'
-import img from './Certificate1.png';
+import jsPDF from "jspdf";
+import img from "./Certificate1.png";
+import { motion } from "framer-motion";
 
 const CourseContentPage = () => {
   const { courseId } = useParams();
@@ -102,28 +103,34 @@ const CourseContentPage = () => {
     checkCompletion();
   }, [auth, courseId]);
 
-
-  const name = auth?.user?.full_name; 
+  const name = auth?.user?.full_name;
   const course = courseName;
-  
+
   const generateCertificate = () => {
     // Create a new jsPDF instance
     const doc = new jsPDF();
-  
+
     // Add background image
-    doc.addImage(img, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-  
+    doc.addImage(
+      img,
+      "PNG",
+      0,
+      0,
+      doc.internal.pageSize.getWidth(),
+      doc.internal.pageSize.getHeight()
+    );
+
     // Add recipient name
     doc.setFontSize(36);
-    doc.setFont('helvetica'); 
-    doc.text(name, 105, 160, { align: 'center' }); 
+    doc.setFont("helvetica");
+    doc.text(name, 105, 160, { align: "center" });
 
     doc.setFontSize(15);
     doc.text(instructorName, 122, 178.5);
-  
+
     doc.setFontSize(20);
-    doc.text(course, 105, 195, { align: 'center' });
-  
+    doc.text(course, 105, 195, { align: "center" });
+
     doc.save(`${name}-${course}.pdf`);
   };
 
@@ -178,61 +185,76 @@ const CourseContentPage = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="course-content-page">
-        <div className="video-player">
-          {selectedVideo ? (
-            <ReactPlayer
-              ref={playerRef}
-              url={selectedVideo}
-              controls
-              width="100%"
-              height="auto"
-              onProgress={handleProgress}
-              config={{
-                file: {
-                  attributes: {
-                    controlsList: "nodownload",
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <Navbar />
+        <div className="course-content-page">
+          <div className="video-player">
+            {selectedVideo ? (
+              <ReactPlayer
+                ref={playerRef}
+                url={selectedVideo}
+                controls
+                width="100%"
+                height="auto"
+                onProgress={handleProgress}
+                config={{
+                  file: {
+                    attributes: {
+                      controlsList: "nodownload",
+                    },
                   },
-                },
-              }}
-            />
-          ) : (
-            <p>No video selected</p>
-          )}
-        </div>
+                }}
+              />
+            ) : (
+              <p>No video selected</p>
+            )}
+          </div>
 
-        <div className="content-list">
-          <h3>{courseName ? `${courseName}` : "Course Content"}</h3>
-          {isCompleted && <button onClick={() => generateCertificate()} className="download-certificate">Get Certificate</button>}
-          <ul>
-            {courseContent.map((content) => (
-              <li
-                key={content.content_id}
-                className={
-                  content.content_url === selectedVideo ? "active selected-list-items" : "selected-list-items"
-                }
-                
-                onClick={() => {
-                  if (content.content_url) {
-                    setSelectedVideo(content.content_url);
-                  } else {
-                    alert("You need to enroll to access this content.");
-                  }
-                }}
-                style={{
-                  cursor: "pointer",
-                  borderBottom: watchedContentIds.has(content.content_id)
-                    ? "4px solid red"
-                    : "none",
-                }}
+          <div className="content-list">
+            <h3>{courseName ? `${courseName}` : "Course Content"}</h3>
+            {isCompleted && (
+              <button
+                onClick={() => generateCertificate()}
+                className="download-certificate"
               >
-                {content.title}
-              </li>
-            ))}
-          </ul>
+                Get Certificate
+              </button>
+            )}
+            <ul>
+              {courseContent.map((content) => (
+                <li
+                  key={content.content_id}
+                  className={
+                    content.content_url === selectedVideo
+                      ? "active selected-list-items"
+                      : "selected-list-items"
+                  }
+                  onClick={() => {
+                    if (content.content_url) {
+                      setSelectedVideo(content.content_url);
+                    } else {
+                      alert("You need to enroll to access this content.");
+                    }
+                  }}
+                  style={{
+                    cursor: "pointer",
+                    borderBottom: watchedContentIds.has(content.content_id)
+                      ? "4px solid red"
+                      : "none",
+                  }}
+                >
+                  {content.title}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 };

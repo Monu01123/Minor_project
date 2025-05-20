@@ -222,6 +222,7 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .dropdown-content .dropdown-link {
@@ -232,6 +233,7 @@ body {
   display: inline-block;
   width: 100%;
   cursor: pointer;
+  transition: all 0.5s ease;
 }
 
 .dropdown-content .dropdown-link:hover {

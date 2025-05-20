@@ -13,6 +13,7 @@ import { useWishlist } from "./WishlistContext.js";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PlayCircleOutlinedIcon from "@mui/icons-material/PlayCircleOutlined";
 import Footer from "./Footer.js";
+import toast, { Toaster } from "react-hot-toast";
 
 const CourseContent = () => {
   const { courseId } = useParams();
@@ -83,7 +84,7 @@ const CourseContent = () => {
             }
           );
           setCartItems(cartResponse.data);
-
+      
           const wishlistResponse = await axiosInstance.get(
             `/api/wishlist/user/${userId}`,
             {
@@ -151,8 +152,8 @@ const CourseContent = () => {
           },
         }
       );
-      console.log("Course added to cart:", response.data.message);
-
+      // console.log("Course added to cart:", response.data.message);
+      toast.success("Added to Cart!");
       // Update cart count in Navbar
       const newCartCount = await fetchCartCount(); // You'll need to define this method to fetch the updated cart count
       updateCartCount(newCartCount); // Update the cart count in Navbar
@@ -167,6 +168,7 @@ const CourseContent = () => {
         console.error("An unexpected error occurred:", error);
         alert("An unexpected error occurred. Please try again later.");
       }
+      toast.error("Not added to cart!");
     }
   };
 
@@ -193,7 +195,8 @@ const CourseContent = () => {
           },
         }
       );
-      console.log("Course added to wishlist:", response.data.message);
+      // console.log("Course added to wishlist:", response.data.message);
+      toast.success("Added to Wishlist!");
       const newWishlistCount = await fetchWishlistCount(); // You'll need to define this method to fetch the updated cart count
       updateWishlistCount(newWishlistCount); // Update the cart count in Navbar
     } catch (error) {
@@ -224,13 +227,12 @@ const CourseContent = () => {
 
   const handleOpenCourseContentPage = () => {
     navigate(`/courses-content/${courseId}`, {
-      state: { 
+      state: {
         courseName: courseDetails?.title,
-        instructorName: courseDetails?.instructor_name 
+        instructorName: courseDetails?.instructor_name,
       },
     });
   };
-  
 
   const fetchCartCount = async () => {
     if (auth?.user) {
@@ -266,6 +268,7 @@ const CourseContent = () => {
     <>
       <Navbar />
       <div className="course-content-container">
+        <Toaster position="bottom-right" reverseOrder={true} />
         {courseDetails ? (
           <main className="Course-content-section">
             <div className="course-details uur">
@@ -279,7 +282,7 @@ const CourseContent = () => {
               </p>
               {/* {courseDetails.discount_price && ( */}
               {/* <p>₹{courseDetails.price}</p> */}
-                <p>₹{courseDetails.discount_price}</p>
+              <p>₹{courseDetails.discount_price}</p>
               {/* )} */}
               {enrolled ? (
                 <>

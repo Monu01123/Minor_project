@@ -6,7 +6,7 @@ const Modal = ({ isOpen, onClose, results }) => {
   if (!isOpen) return null; 
 
   return (
-    <div className="search-overlay">
+    <div className="search-overlay" onClick={onClose}>
       <div className="search-content">
         <button className="close-button" onClick={onClose}>
           X

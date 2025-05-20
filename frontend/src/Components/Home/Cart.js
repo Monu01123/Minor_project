@@ -8,6 +8,8 @@ import cartImage from "./chat.png";
 import "./Cart.css";
 import Footer from "./Footer.js";
 import { useWishlist } from "./WishlistContext.js";
+import toast, { Toaster } from "react-hot-toast";
+import { motion } from "framer-motion";
 
 const stripePromise = loadStripe(
   "pk_test_51MiCn5SCTwSZDv2RQSoCBZEhWYnhCpG7Yi90uqZm6mTFi2KE2Sp2VNLgrZgjidU209nlFv6qS26GjrIVnCbOQ2eA00bdSwIX1F"
@@ -115,10 +117,11 @@ const Cart = () => {
       );
 
       await handleRemoveFromCart(rmid);
-      console.log("Course moved to wishlist!");
-       const newCartCount = await fetchCartCount();
-       updateWishlistCount(userId, token); 
-       updateCartCount(newCartCount); 
+      toast.success("Course moved to wishlist!");
+      // console.log("Course moved to wishlist!");
+      const newCartCount = await fetchCartCount();
+      updateWishlistCount(userId, token);
+      updateCartCount(newCartCount);
     } catch (error) {
       console.error("Error moving course to wishlist:", error);
     }
@@ -176,73 +179,91 @@ const Cart = () => {
 
   const fetchCartCount = async () => {
     if (auth?.user) {
-        try {
-            const response = await axios.get(`http://localhost:8080/api/cart/count/${auth.user.user_id}`);
-            updateCartCount(response.data.count || 0); // Update cart count
-        } catch (error) {
-            console.error("Error fetching cart count:", error.message);
-        }
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/cart/count/${auth.user.user_id}`
+        );
+        updateCartCount(response.data.count || 0); // Update cart count
+      } catch (error) {
+        console.error("Error fetching cart count:", error.message);
+      }
     }
-};
+  };
 
-fetchCartCount();
+  fetchCartCount();
 
   return (
     <>
-      <Navbar />
-      <div className="cart-container">
-      <h1>Your Cart</h1>
-        {loading ? (
-          <p>Loading...</p>
-        ) : cartItems.length === 0 ? (
-         <div className="empty-cart">
-          <img src={cartImage}  alt="Empty Cart" />
-          <p>Your cart is empty</p>
-         </div> 
-        ) : (
-          <div className="cart-main-container">
-            <div className="cart-list">
-            <ul>
-              {cartItems.map((item) => (
-                <li key={item.cart_item_id} className="cart-item-list">
-                  <img src={item.image_url} alt={item.course_title} />
-                  <h3>{item.course_title}</h3>
-                  <div>
-                  <button
-                    onClick={() => handleRemoveFromCart(item.cart_item_id)}
-                  >
-                    Remove
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleMoveToWishlist(item.course_id, item.cart_item_id)
-                    }
-                  >
-                    Move to Wishlist
-                  </button>
-                  </div>
-                  <p>
-                    {item.discount_price ? (
-                      <div className="cart-buttons">
-                        <span> ₹{Math.round(item.discount_price)}</span>
-                        <del>₹{Math.round(item.price)}</del>
-                      </div>
-                    ) : (
-                      <span>₹{Math.round(item.price)}</span>
-                    )}
-                  </p>
-                </li>
-              ))}
-            </ul>
-            <div>
-            <h2><span style={{color:"black"}}>Subtotal:</span><br/> ₹{totalPrice}</h2>
-            <button onClick={handleCheckout}>Checkout</button>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30 }}
+        transition={{ duration: 0.5, ease: "easeIn" }}
+      >
+        <Navbar />
+        <div className="cart-container">
+          <Toaster position="bottom-right" reverseOrder={true} />
+          <h1>Your Cart</h1>
+          {loading ? (
+            <p>Loading...</p>
+          ) : cartItems.length === 0 ? (
+            <div className="empty-cart">
+              <img src={cartImage} alt="Empty Cart" />
+              <p>Your cart is empty</p>
             </div>
-          </div>
-          </div>
-        )}
-      </div>
-      <Footer />
+          ) : (
+            <div className="cart-main-container">
+              <div className="cart-list">
+                <ul>
+                  {cartItems.map((item) => (
+                    <li key={item.cart_item_id} className="cart-item-list">
+                      <img src={item.image_url} alt={item.course_title} />
+                      <h3>{item.course_title}</h3>
+                      <div>
+                        <button
+                          onClick={() =>
+                            handleRemoveFromCart(item.cart_item_id)
+                          }
+                        >
+                          Remove
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleMoveToWishlist(
+                              item.course_id,
+                              item.cart_item_id
+                            )
+                          }
+                        >
+                          Move to Wishlist
+                        </button>
+                      </div>
+                      <p>
+                        {item.discount_price ? (
+                          <div className="cart-buttons">
+                            <span> ₹{Math.round(item.discount_price)}</span>
+                            <del>₹{Math.round(item.price)}</del>
+                          </div>
+                        ) : (
+                          <span>₹{Math.round(item.price)}</span>
+                        )}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                <div>
+                  <h2>
+                    <span style={{ color: "black" }}>Subtotal:</span>
+                    <br /> ₹{totalPrice}
+                  </h2>
+                  <button onClick={handleCheckout}>Checkout</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        <Footer />
+      </motion.div>
     </>
   );
 };
