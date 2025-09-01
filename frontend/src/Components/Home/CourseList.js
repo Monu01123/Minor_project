@@ -12,7 +12,7 @@ const CourseList = () => {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/courses/category/${categoryId}`)
+    axios.get(`https://minor-project-3-18lw.onrender.com/api/courses/category/${categoryId}`)
       .then(response => {
         setCourses(response.data);
       })

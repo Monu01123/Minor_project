@@ -13,7 +13,7 @@ const Category = () => {
     const fetchCategories = async () => {
       try {
         dispatch(setLoading());
-        const response = await axios.get('http://localhost:8080/categories');
+        const response = await axios.get('https://minor-project-3-18lw.onrender.com/categories');
         // Store both category names and IDs
         const categoryData = response.data.map(category => ({
           id: category.category_id,

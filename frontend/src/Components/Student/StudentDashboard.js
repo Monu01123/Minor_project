@@ -21,7 +21,7 @@ const StudentDashboard = () => {
       try {
         const token = auth?.token; 
 
-        const response = await axios.get(`http://localhost:8080/api/enrollments/user/${userId}`, {
+        const response = await axios.get(`https://minor-project-3-18lw.onrender.com/api/enrollments/user/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`, 
           },

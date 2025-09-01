@@ -47,7 +47,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8080/auth/register", {
+      const response = await axios.post("https://minor-project-3-18lw.onrender.com/auth/register", {
         full_name,
         email,
         password,
@@ -77,7 +77,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/auth/verify-otp",
+        "https://minor-project-3-18lw.onrender.com/auth/verify-otp",
         {
           email,
           otp: otpValue,

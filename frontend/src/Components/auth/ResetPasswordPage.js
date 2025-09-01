@@ -13,7 +13,7 @@ const ResetPasswordPage = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/auth/reset-password', {
+      const response = await axios.post('https://minor-project-3-18lw.onrender.com/auth/reset-password', {
         email,
         token,
         newPassword,

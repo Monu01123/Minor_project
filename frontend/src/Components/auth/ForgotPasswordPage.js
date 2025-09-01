@@ -17,7 +17,7 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8080/auth/forgot-password', { email });
+      const response = await axios.post('https://minor-project-3-18lw.onrender.com/auth/forgot-password', { email });
       setMessage(response.data.message);
       setErrorMessage('');
       setStep(2); 
@@ -30,7 +30,7 @@ const ForgotPasswordPage = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/auth/reset-password', {
+      const response = await axios.post('https://minor-project-3-18lw.onrender.com/auth/reset-password', {
         email,
         token,
         newPassword,

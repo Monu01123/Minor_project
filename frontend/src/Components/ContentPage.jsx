@@ -17,15 +17,15 @@ const ContentPage = () => {
     const fetchCourseData = async () => {
       try {
         // Fetch course details
-        const courseResponse = await axios.get(`http://localhost:8080/api/courses/${course_id}`);
+        const courseResponse = await axios.get(`https://minor-project-3-18lw.onrender.com/api/courses/${course_id}`);
         setCourse(courseResponse.data);
 
         // Fetch course content
-        const contentResponse = await axios.get(`http://localhost:8080/api/content/${course_id}`);
+        const contentResponse = await axios.get(`https://minor-project-3-18lw.onrender.com/api/content/${course_id}`);
         setContent(contentResponse.data);
 
         // Fetch course reviews
-        const reviewsResponse = await axios.get(`http://localhost:8080/api/reviews/course/${course_id}`);
+        const reviewsResponse = await axios.get(`https://minor-project-3-18lw.onrender.com/api/reviews/course/${course_id}`);
         setReviews(reviewsResponse.data);
 
         setLoading(false);

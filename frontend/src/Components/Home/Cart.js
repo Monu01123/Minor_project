@@ -37,7 +37,7 @@ const Cart = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:8080/api/cart/user/${userId}`,
+          `https://minor-project-3-18lw.onrender.com/api/cart/user/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -80,7 +80,7 @@ const Cart = () => {
   const handleRemoveFromCart = async (cartItemId) => {
     const token = auth?.token;
     try {
-      await axios.delete(`http://localhost:8080/api/cart/item/${cartItemId}`, {
+      await axios.delete(`https://minor-project-3-18lw.onrender.com/api/cart/item/${cartItemId}`, {
         headers: {
           Authorization: `Bearer ${token}`, // Pass the token in the headers
         },
@@ -104,7 +104,7 @@ const Cart = () => {
     const token = auth?.token;
     try {
       await axios.post(
-        "http://localhost:8080/api/wishlist",
+        "https://minor-project-3-18lw.onrender.com/api/wishlist",
         {
           user_id: userId,
           course_id: courseId,
@@ -149,7 +149,7 @@ const Cart = () => {
       const token = auth?.token;
 
       const response = await axios.post(
-        "http://localhost:8080/create-checkout-session",
+        "https://minor-project-3-18lw.onrender.com/create-checkout-session",
         {
           items: items,
           userId: userId,
@@ -181,7 +181,7 @@ const Cart = () => {
     if (auth?.user) {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/cart/count/${auth.user.user_id}`
+          `https://minor-project-3-18lw.onrender.com/api/cart/count/${auth.user.user_id}`
         );
         updateCartCount(response.data.count || 0); // Update cart count
       } catch (error) {

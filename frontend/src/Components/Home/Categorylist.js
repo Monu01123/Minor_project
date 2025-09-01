@@ -9,7 +9,7 @@ function HomePage() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/categories")
+      .get("https://minor-project-3-18lw.onrender.com/categories")
       .then((response) => {
         setCategories(response.data);
       })

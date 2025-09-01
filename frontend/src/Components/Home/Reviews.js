@@ -17,7 +17,7 @@ const Reviews = () => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/reviews/course/${courseId}`
+          `https://minor-project-3-18lw.onrender.com/api/reviews/course/${courseId}`
         );
 
         if (Array.isArray(response.data)) {

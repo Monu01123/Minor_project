@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: 'https://minor-project-3-18lw.onrender.com',
 });
 
 // Automatically add the token to all requests if it exists in localStorage

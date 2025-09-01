@@ -34,7 +34,7 @@ const CourseContent = () => {
     const token = auth?.token;
 
     axios
-      .get(`http://localhost:8080/api/courses/${courseId}`)
+      .get(`https://minor-project-3-18lw.onrender.com/api/courses/${courseId}`)
       .then((response) => {
         console.log("Course Details Response j:", response.data);
         setCourseDetails(response.data);
@@ -238,7 +238,7 @@ const CourseContent = () => {
     if (auth?.user) {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/cart/count/${auth.user.user_id}`
+          `https://minor-project-3-18lw.onrender.com/api/cart/count/${auth.user.user_id}`
         );
         updateCartCount(response.data.count || 0); // Update cart count
       } catch (error) {
@@ -253,7 +253,7 @@ const CourseContent = () => {
     if (auth?.user) {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/wishlist/count/${auth.user.user_id}`
+          `https://minor-project-3-18lw.onrender.com/api/wishlist/count/${auth.user.user_id}`
         );
         updateWishlistCount(response.data.wishlist_count || 0); // Update cart count
       } catch (error) {
