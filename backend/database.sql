@@ -7,9 +7,6 @@ CREATE TABLE users (
     full_name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-
-
-    ''
     otp VARCHAR(255),
     otp_expires DATETIME,
     is_active BOOLEAN DEFAULT FALSE,
