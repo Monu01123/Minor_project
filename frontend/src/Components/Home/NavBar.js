@@ -81,7 +81,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("auth");
-    window.location.href = "http://localhost:3000/category/1";
+    window.location.href = "https://dazzling-starship-a6b164.netlify.app/category/1";
   };
 
   const handleSearch = async (e) => {
