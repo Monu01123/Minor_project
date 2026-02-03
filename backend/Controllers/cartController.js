@@ -1,5 +1,14 @@
 import { promisePool } from '../db.js'; 
 
+const appendSasToken = (url) => {
+    if (!url) return url;
+    if (url.includes("blob.core.windows.net")) {
+         const baseUrl = url.split("?")[0];
+         return `${baseUrl}?${process.env.SAS_TOKEN}`;
+    }
+    return url;
+}; 
+
 export const addToCart = async (req, res) => {
     const { user_id, course_id } = req.body;
 
@@ -65,7 +74,12 @@ export const getCartByUserId = async (req, res) => {
             return res.status(200).json({ message: 'No items in the cart', cartItems: [] });
         }
 
-        res.json(cartItems); 
+        const updatedCartItems = cartItems.map(item => ({
+            ...item,
+            image_url: appendSasToken(item.image_url)
+        }));
+
+        res.json(updatedCartItems); 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching cart items' });

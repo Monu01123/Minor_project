@@ -14,7 +14,7 @@ export const addCourseContent = async (req, res) => {
     content_type,
     content_url,
     content_text,
-    file_url, // New field
+    file_url, // Reserved from HEAD
     duration,
     content_order,
   } = req.body;
@@ -29,7 +29,7 @@ export const addCourseContent = async (req, res) => {
         content_type,
         content_url,
         content_text,
-        file_url, // New field
+        file_url,
         duration,
         content_order,
       ]
@@ -48,6 +48,14 @@ export const addCourseContent = async (req, res) => {
   }
 };
 
+const appendSasToken = (url) => {
+    if (!url) return url;
+    if (url.includes("blob.core.windows.net")) {
+         const baseUrl = url.split("?")[0];
+         return `${baseUrl}?${process.env.SAS_TOKEN}`;
+    }
+    return url;
+};
 
 export const getCourseContentByCourseId = async (req, res) => {
   const { courseId } = req.params;
@@ -59,7 +67,12 @@ export const getCourseContentByCourseId = async (req, res) => {
       [courseId]
     );
 
-    res.status(200).json(rows.length > 0 ? rows : []);
+    const updatedRows = rows.map(row => ({
+        ...row,
+        content_url: appendSasToken(row.content_url)
+    }));
+
+    res.status(200).json(updatedRows.length > 0 ? updatedRows : []);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching course content" });
@@ -69,47 +82,64 @@ export const getCourseContentByCourseId = async (req, res) => {
 
 
 export const getCourseContentByCourseIdsecure = async (req, res) => {
-  const { courseId } = req.params;
-  const authHeader = req.headers.authorization;
+    const { courseId } = req.params;
+    const authHeader = req.headers.authorization;
+    
+    // Check if the token is present
+    let userId = null;
 
-  let userId = null;
+    // Verify the token if it exists
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];  // Extract the token from the Authorization header
 
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(" ")[1];
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);  // Verify the token using your secret
+            userId = decoded.user_id;  // Extract the user ID from the token
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
+    }
+
+    console.log('User ID:', userId, 'Course ID:', courseId);  // Debug log
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      userId = decoded.user_id;
+        // Check if the user is enrolled in the course
+        const [enrollment] = await promisePool.query(
+            `SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?`,
+            [userId, courseId]
+        );
+
+        // Check if the user is the instructor of the course
+        const [course] = await promisePool.query(
+            `SELECT instructor_id FROM courses WHERE course_id = ?`,
+            [courseId]
+        );
+        const isInstructor = course.length > 0 && course[0].instructor_id === userId;
+
+        // Fetch the course content including file_url
+        const [courseContentRows] = await promisePool.query(
+            `SELECT content_id, title, content_url, file_url FROM course_content WHERE course_id = ? ORDER BY content_order`,
+            [courseId]
+        );
+
+        // Prepare the response based on enrollment status or instructor ownership
+        const responseContent = courseContentRows.map(content => ({
+            content_id: content.content_id,
+            title: content.title,
+            // Show URL if enrolled or is instructor (with SAS token for blob urls)
+            content_url: (enrollment.length > 0 || isInstructor) ? appendSasToken(content.content_url) : null,
+            // Show file_url if enrolled or is instructor
+            file_url: (enrollment.length > 0 || isInstructor) ? content.file_url : null,
+        }));
+
+        return res.status(200).json(responseContent);
     } catch (error) {
-      console.error("Token verification failed:", error);
-      return res.status(403).json({ message: "Invalid or expired token" });
+        console.error("Error fetching course content: ", error);
+        return res.status(500).json({ message: "Error fetching course content" });
     }
-  }
-
-  try {
-    const [enrollment] = await promisePool.query(
-      `SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?`,
-      [userId, courseId]
-    );
-
-    const [courseContentRows] = await promisePool.query(
-      `SELECT content_id, title, content_url, file_url FROM course_content WHERE course_id = ? ORDER BY content_order`,
-      [courseId]
-    );
-
-    const responseContent = courseContentRows.map((content) => ({
-      content_id: content.content_id,
-      title: content.title,
-      content_url: enrollment.length > 0 ? content.content_url : null,
-      file_url: enrollment.length > 0 ? content.file_url : null, // Include file_url
-    }));
-
-    return res.status(200).json(responseContent);
-  } catch (error) {
-    console.error("Error fetching course content: ", error);
-    return res.status(500).json({ message: "Error fetching course content" });
-  }
 };
+
 
 
 export const updateCourseContent = async (req, res) => {
@@ -119,7 +149,7 @@ export const updateCourseContent = async (req, res) => {
     content_type,
     content_url,
     content_text,
-    file_url, // New field
+    file_url, // Preserved
     duration,
     content_order,
   } = req.body;
@@ -134,7 +164,7 @@ export const updateCourseContent = async (req, res) => {
         content_type,
         content_url,
         content_text,
-        file_url, // New field
+        file_url,
         duration,
         content_order,
         contentId,
@@ -142,9 +172,12 @@ export const updateCourseContent = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({
-        message: "Course content not found. Please ensure the content ID is correct.",
-      });
+      return res
+        .status(404)
+        .json({
+          message:
+            "Course content not found. Please ensure the content ID is correct.",
+        });
     }
 
     res.json({ message: "Course content updated successfully." });
@@ -156,7 +189,6 @@ export const updateCourseContent = async (req, res) => {
     });
   }
 };
-
 
 export const deleteCourseContent = async (req, res) => {
   const { contentId } = req.params;

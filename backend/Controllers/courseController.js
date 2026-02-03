@@ -1,60 +1,53 @@
-import { promisePool } from "../db.js";
+import { CourseService } from "../services/courseService.js";
+import logger from "../utils/logger.js";
+import NodeCache from "node-cache";
 
+const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
 
 export const createCourse = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      price,
-      discount_price,
-      image_url,
-      category_id,
-      instructor_id,
-      level,
-      language,
-    } = req.body;
+    const insertId = await CourseService.createCourse(req.body);
 
-    const [courseResult] = await promisePool.query(
-      `INSERT INTO courses (title, description, price, discount_price, image_url, category_id, instructor_id, level, language) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        title,
-        description,
-        price,
-        discount_price,
-        image_url,
-        category_id,
-        instructor_id,
-        level,
-        language,
-      ]
-    );
-
-    const courseId = courseResult.insertId;
-
-    await promisePool.query(
-      `INSERT INTO enrollments (user_id, course_id, progress) VALUES (?, ?, 0)`,
-      [instructor_id, courseId]
-    );
-
+    logger.info(`Course created successfully with ID: ${insertId}`);
+    cache.del("allCourses"); // Invalidate cache
     res.status(201).json({
-      message: "Course created and instructor enrolled successfully",
-      course_id: courseId,
+      message: "Course created successfully",
+      course_id: insertId,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error creating course or enrolling instructor" });
+    logger.error("Error creating course", error);
+    res.status(500).json({ message: "Error creating course" });
   }
 };
 
+const appendSasToken = (url) => {
+    if (!url) return url;
+    if (url.includes("blob.core.windows.net")) {
+         const baseUrl = url.split("?")[0];
+         return `${baseUrl}?${process.env.SAS_TOKEN}`;
+    }
+    return url;
+};
 
 export const getCourses = async (req, res) => {
   try {
-    const [rows] = await promisePool.query(`SELECT * FROM courses`);
-    res.json(rows);
+    const cachedCourses = cache.get("allCourses");
+    if (cachedCourses) {
+        logger.info("Serving courses from cache");
+        return res.json(cachedCourses);
+    }
+
+    const rows = await CourseService.getAllCourses();
+    const updatedRows = rows.map(course => ({
+        ...course,
+        image_url: appendSasToken(course.image_url)
+    }));
+    
+    cache.set("allCourses", updatedRows);
+    logger.info("Serving courses from database");
+    res.json(updatedRows);
   } catch (error) {
-    console.error(error);
+    logger.error("Error fetching courses", error);
     res.status(500).json({ message: "Error fetching courses" });
   }
 };
@@ -62,84 +55,52 @@ export const getCourses = async (req, res) => {
 export const getCourseById = async (req, res) => {
   const { courseId } = req.params;
   try {
-    const [rows] = await promisePool.query(
-      `SELECT 
-        c.*, 
-        u.full_name AS instructor_name, 
-        (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.course_id) AS enrollment_count
-      FROM courses c
-      JOIN users u ON c.instructor_id = u.user_id
-      WHERE c.course_id = ?`,
-      [courseId]
-    );
+    const course = await CourseService.getCourseById(courseId);
 
-    res.json(rows[0]);
+    if (course) {
+        course.image_url = appendSasToken(course.image_url);
+        res.json(course);
+    } else {
+        res.status(404).json({ message: "Course not found" }); // Handled explicit 404
+    }
   } catch (error) {
-    console.error(error);
+    logger.error("Error fetching course details", error);
     res.status(500).json({ message: "Error fetching course details" });
   }
 };
 
 
-
 export const updateCourse = async (req, res) => {
   const { courseId } = req.params;
-  const {
-    title,
-    description,
-    price,
-    discount_price,
-    image_url,
-    category_id,
-    instructor_id,
-    level,
-    language,
-    status,
-  } = req.body;
+  const { instructor_id } = req.body; // Assuming instructor_id comes from body or auth middleware attached to req
 
   try {
-    // Fetch the course to check the instructor
-    const [courseRows] = await promisePool.query(
-      `SELECT instructor_id FROM courses WHERE course_id = ?`,
-      [courseId]
-    );
+    // Check if the course exists and belongs to the instructor
+    const courseInstructorId = await CourseService.getCourseInstructorId(courseId);
 
-    if (courseRows.length === 0) {
+    if (!courseInstructorId) {
       return res.status(404).json({ message: "Course not found" });
     }
 
     // Check if the logged-in instructor matches the course's instructor
-    const courseInstructorId = courseRows[0].instructor_id;
+    // Note: req.body.instructor_id might need to be sourced from req.user depending on auth middleware
     if (courseInstructorId !== instructor_id) {
       return res
         .status(403)
         .json({ message: "You do not have permission to modify this course" });
     }
 
-    const [result] = await promisePool.query(
-      `UPDATE courses SET title = ?, description = ?, price = ?, discount_price = ?, image_url = ?, category_id = ?, 
-      level = ?, language = ?, status = ?, updated_at = NOW() WHERE course_id = ?`,
-      [
-        title,
-        description,
-        price,
-        discount_price,
-        image_url,
-        category_id,
-        level,
-        language,
-        status,
-        courseId,
-      ]
-    );
+    const success = await CourseService.updateCourse(courseId, req.body);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Course not found" });
+    if (!success) {
+      return res.status(404).json({ message: "Course not found or no changes made" });
     }
 
+    logger.info(`Course updated successfully: ${courseId}`);
+    cache.del("allCourses"); // Invalidate cache
     res.json({ message: "Course updated successfully" });
   } catch (error) {
-    console.error(error);
+    logger.error("Error updating course", error);
     res.status(500).json({ message: "Error updating course" });
   }
 };
@@ -148,57 +109,33 @@ export const updateCourse = async (req, res) => {
 
 export const deleteCourse = async (req, res) => {
   const { courseId } = req.params;
-  const { instructor_id } = req.body; // Make sure this is being passed correctly
+  const { instructor_id } = req.body; 
 
   try {
-    // Log incoming data for debugging
-    console.log(`Deleting Course ID: ${courseId}`);
-    console.log(`Instructor ID from request: ${instructor_id}`);
+    // Check permissions
+    const courseInstructorId = await CourseService.getCourseInstructorId(courseId);
 
-    // Fetch the course to check the instructor
-    const [courseRows] = await promisePool.query(
-      `SELECT instructor_id FROM courses WHERE course_id = ?`,
-      [courseId]
-    );
-
-    if (courseRows.length === 0) {
-      console.error("Course not found");
+    if (!courseInstructorId) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    const courseInstructorId = courseRows[0].instructor_id;
-    console.log(`Instructor ID from course: ${courseInstructorId}`);
-
     if (courseInstructorId !== instructor_id) {
-      console.error("Permission denied to delete course");
       return res
         .status(403)
         .json({ message: "You do not have permission to delete this course" });
     }
 
-    // Delete enrollments related to the course
-    const [enrollmentResult] = await promisePool.query(
-      `DELETE FROM enrollments WHERE user_id = ?`,
-      [instructor_id]
-    );
-    console.log(
-      `Deleted ${enrollmentResult.affectedRows} enrollment(s) related to the course`
-    );
+    const success = await CourseService.deleteCourse(courseId);
 
-    // Delete the course
-    const [courseResult] = await promisePool.query(
-      `DELETE FROM courses WHERE course_id = ?`,
-      [courseId]
-    );
-
-    if (courseResult.affectedRows === 0) {
-      console.error("Course not found in deletion step");
-      return res.status(404).json({ message: "Course not found" });
+    if (!success) {
+      return res.status(404).json({ message: "Course not found in deletion step" });
     }
 
-    res.json({ message: "Course and related enrollments deleted successfully" });
+    logger.info(`Course deleted successfully: ${courseId}`);
+    cache.del("allCourses"); // Invalidate cache
+    res.json({ message: "Course deleted successfully" });
   } catch (error) {
-    console.error("Error deleting course:", error); // Log the error for debugging
+    logger.error("Error deleting course", error); 
     res.status(500).json({ message: "Error deleting course" });
   }
 };
@@ -208,13 +145,7 @@ export const deleteCourse = async (req, res) => {
 export const getCoursesByCategory = async (req, res) => {
   const { categoryId } = req.params;
   try {
-    const [rows] = await promisePool.query(
-      `SELECT courses.*, users.full_name AS instructor_name 
-       FROM courses 
-       JOIN users ON courses.instructor_id = users.user_id 
-       WHERE courses.category_id = ?`,
-      [categoryId]
-    );
+    const rows = await CourseService.getCoursesByCategory(categoryId);
 
     if (rows.length === 0) {
       return res
@@ -222,9 +153,14 @@ export const getCoursesByCategory = async (req, res) => {
         .json({ message: "No courses found for this category" });
     }
     
-    res.json(rows);
+    const updatedRows = rows.map(course => ({
+        ...course,
+        image_url: appendSasToken(course.image_url)
+    }));
+    
+    res.json(updatedRows);
   } catch (error) {
-    console.error(error);
+    logger.error("Error fetching courses by category", error);
     res.status(500).json({ message: "Error fetching courses by category" });
   }
 };
@@ -233,18 +169,15 @@ export const getCoursesByCategory = async (req, res) => {
 export const getCoursesByInstructor = async (req, res) => {
   const { instructorId } = req.params;
   try {
-    const [rows] = await promisePool.query(
-      `SELECT * FROM courses WHERE instructor_id = ?`,
-      [instructorId]
-    );
-    // if (rows.length === 0) {
-    //   return res
-    //     .status(404)
-    //     .json({ message: "No courses found for this instructor" });
-    // }
-    res.json(rows);
+    const rows = await CourseService.getCoursesByInstructor(instructorId);
+    
+    const updatedRows = rows.map(course => ({
+        ...course,
+        image_url: appendSasToken(course.image_url)
+    }));
+    res.json(updatedRows);
   } catch (error) {
-    console.error(error);
+    logger.error("Error fetching courses by instructor", error);
     res.status(500).json({ message: "Error fetching courses by instructor" });
   }
 };
