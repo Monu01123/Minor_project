@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import authRoutes from "./routes/authRoutes.js";
 import { authenticateToken } from "./middleware/authenticateToken.js";
 import { testConnection } from "./db.js";
@@ -23,12 +25,48 @@ import search from "./routes/SearchRoute.js";
 import vediotrack from "./routes/vedioTrack.js";
 import certificateRoute from "./routes/certificateRoute.js";
 import nodemailer from "nodemailer";
+import { swaggerUi, specs } from "./config/swagger.js";
+import logger from "./utils/logger.js";
+
 dotenv.config();
 
-const app = express();
 const PORT = process.env.PORT || 8080;
 const stripe = new Stripe(process.env.STRIPE_SERVER_SECRET_KEY);
 const endpointSecret = process.env.ENDPOINT_SECRET;
+
+const app = express();
+
+// CORS Validation - Must be first
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://dazzling-starship-a6b164.netlify.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+// Explicitly permit preflight requests
+app.options('*', cors());
+
+// Security Middleware
+app.use(helmet());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply rate limiting to all requests
+app.use(limiter);
+
+// Swagger Documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+// ...
 
 // Ensure the webhook route is defined before body-parser middleware
 app.post(
@@ -41,39 +79,41 @@ app.post(
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
-      console.error("Webhook signature verification failed:", err.message);
+      logger.error("Webhook signature verification failed:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      console.log("Webhook received session:", session);
+      logger.info("Webhook received session:", session);
       const userId = session.metadata.userId;
       const courseIds = session.metadata.courseIds;
 
-      console.log("Received Course IDs:", courseIds);
-      console.log("User ID:", userId);
+      logger.info("Received Course IDs:", courseIds);
+      logger.info("User ID:", userId);
 
       if (courseIds) {
         const courseIdArray = courseIds.split(",").filter(Boolean);
         try {
           for (const courseId of courseIdArray) {
             await enrollUserInCourse(userId, courseId);
-            console.log(
+            logger.info(
               `User ${userId} successfully enrolled in course ${courseId}`
             );
           }
 
           // Clear the user's cart after successful payment
           await clearCart(userId); // Pass only the userId
-          console.log(`Cart cleared for user ${userId}`);
+          logger.info(`Cart cleared for user ${userId}`);
+          
           await sendEnrollmentEmail("monumeena0112@gmail.com", courseIds);
-          console.log("Enrollment email sent successfully!");
+          logger.info("Enrollment email sent successfully!");
+
           res
             .status(200)
             .send("User successfully enrolled in all courses and cart cleared");
         } catch (error) {
-          console.error(
+          logger.error(
             "Error enrolling user in courses or clearing cart:",
             error
           );
@@ -127,22 +167,11 @@ async function sendEnrollmentEmail(toEmail, courseIds) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully!");
+    logger.info("Email sent successfully!");
   } catch (error) {
-    console.error("Error sending email:", error);
+    logger.error("Error sending email:", error);
   }
 }
-
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://dazzling-starship-a6b164.netlify.app",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
 
 app.use(express.json());
 app.use("/admin", authenticateToken, adminRoutes);
@@ -168,8 +197,8 @@ app.post("/create-checkout-session", async (req, res) => {
   const { items, userId, courseIds } = req.body; // Ensure courseIds is destructured
 
   // Log the received items and courseIds
-  console.log("Received items:", items);
-  console.log("Course IDs:", courseIds);
+  logger.info("Received items:", items);
+  logger.info("Course IDs:", courseIds);
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -191,7 +220,7 @@ app.post("/create-checkout-session", async (req, res) => {
 
     res.status(200).json({ sessionId: session.id });
   } catch (error) {
-    console.error("Error creating Stripe session:", error);
+    logger.error("Error creating Stripe session:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -200,14 +229,14 @@ async function enrollUserInCourse(userId, courseId) {
   try {
     const query = "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)";
     await promisePool.execute(query, [userId, courseId]);
-    console.log(`User ${userId} enrolled in course ${courseId}`);
+    logger.info(`User ${userId} enrolled in course ${courseId}`);
   } catch (error) {
-    console.error("Error enrolling user in course:", error);
+    logger.error("Error enrolling user in course:", error);
     throw error;
   }
 }
 
 app.listen(PORT, async () => {
-  console.log(`Server is running on https://dazzling-starship-a6b164.netlify.app:${PORT}`);
+  logger.info(`Server is running on http://localhost:${PORT}`);
   await testConnection();
 });
