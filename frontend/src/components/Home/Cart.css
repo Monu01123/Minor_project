@@ -1,0 +1,265 @@
+.empty-cart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  margin: 0 auto;
+  max-width: 800px;
+}
+
+.empty-cart img {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  margin-bottom: 20px;
+  margin-right: 50px;
+}
+
+.empty-cart p {
+  font-size: 1.5rem;
+  color: #555;
+  position: relative;
+  top: -16vh;
+  text-align: center;
+  font-weight: bold;
+}
+
+@media (max-width: 1024px) {
+  .empty-cart img {
+    max-width: 400px;
+  }
+
+  .empty-cart p {
+    font-size: 1.3rem;
+    margin-top: 30px;
+  }
+
+}
+
+@media (max-width: 768px) {
+  .empty-cart img {
+    max-width: 300px;
+    margin: 0px;
+  }
+
+  .empty-cart p {
+    font-size: 1.1rem;
+    margin-top: 80px;
+  }
+  .empty-cart{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .empty-cart img {
+    max-width: 200px;
+  }
+
+  .empty-cart p {
+    font-size: 0.7rem;
+    margin-top: 100px;
+  }
+}
+
+.cart-container {
+  height: 100%;
+}
+
+.cart-container h1 {
+  margin-bottom: 20px;
+}
+
+.cart-container ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.cart-container li {
+  margin: 10px 0;
+  padding: 15px;
+  border-top: 1px solid #ddd;
+  background-color: #fff;
+}
+
+.cart-container > h1 {
+  text-align: center;
+  padding: 30px 0px;
+  background-color: #033f4d;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.cart-main-container{
+  min-height: 60vh;
+}
+
+.cart-list {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px auto;
+  max-width: 80vw;
+  gap: 0;
+}
+
+.cart-list > ul {
+  width: 70%;
+}
+
+@media screen and (max-width: 810px) {
+  .cart-item-list {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .cart-item-list > div {
+    flex-direction: row !important;
+    width: 100%;
+    gap: 0 !important;
+  }
+
+  .cart-item-list > img {
+    min-width: 100px;
+  }
+
+  .cart-item-list > div > button:first-child {
+    width: 70px !important;
+  }
+
+  .cart-item-list > div > button {
+    text-align: start !important;
+    padding: 3px 0px !important;
+    margin-left: 0px !important;
+  }
+
+  .cart-item-list > p {
+    align-items: start !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .cart-buttons {
+    flex-direction: row !important;
+    gap: 10px !important;
+    font-size: 1rem !important;
+  }
+
+  .cart-buttons > span {
+    font-size: 1rem !important;
+  }
+
+  .cart-item-list > h3 {
+    font-size: 0.9rem !important;
+    padding: 5px 0px !important;
+    width: 100% !important;
+  }
+
+  .cart-list > div {
+    width: 100% !important;
+  }
+
+  .cart-list > div > h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .cart-list {
+    max-width: 90vw !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0;
+  }
+}
+
+@media screen and (max-width: 1190px) {
+  .cart-list {
+    flex-direction: column;
+  }
+
+  .cart-list > ul {
+    width: 100%;
+  }
+
+  .empty-cart{
+    min-height: 60vh;
+  }
+}
+
+.cart-list > div {
+  width: 20%;
+  padding: 20px;
+}
+
+.cart-item-list {
+  display: flex;
+  align-items: start;
+}
+
+.cart-item-list > img {
+  width: 10vw;
+  object-fit: contain;
+}
+
+.cart-item-list > h3 {
+  width: 50%;
+  padding: 0px 10px 0 10px;
+  color: rgba(0, 0, 0, 0.884);
+  font-size: 1rem;
+}
+
+.cart-item-list > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-item-list > div > button {
+  background-color: transparent;
+  cursor: pointer;
+  border: none;
+  text-align: right;
+  color: #033f4d;
+}
+
+.cart-item-list > p {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  width: 100px;
+}
+
+.cart-buttons {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-buttons > span {
+  color: #033f4d;
+}
+
+.cart-buttons > del {
+  color: rgba(0, 0, 0, 0.74);
+}
+
+.cart-list > div > h2 {
+  color: #036277;
+}
+
+.cart-list > div > button {
+  background-color: #036277;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.cart-list > div > button:hover {
+  background-color: #033e4b;
+}
+

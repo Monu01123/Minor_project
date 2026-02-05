@@ -1,0 +1,132 @@
+.course-content-page{
+  display: flex;
+}
+
+.video-player > p{
+  padding: 150px 50px;
+}
+
+.video-player{
+  width: 70%;
+  height: 90vh;
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content-list{
+  width: 30%;
+  padding: 20px;
+}
+
+.no-content-student{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  width:96vw;
+  box-sizing: border-box;
+}
+
+.no-content-student > div{
+  position: relative;
+  top: -100px;
+}
+
+.no-content-student div > p{
+  border: 2px solid #799dbb;
+  padding: 50px;
+  font-size: max(2vw,2vh);
+}
+
+.no-content-student > div > img{
+  width: 170px;
+  height: 240px;
+  position: relative;
+  bottom: -60px;
+  box-sizing: border-box;
+}
+
+.selected-list-items:hover{
+  background-color: #d4d8dd;
+}
+
+@media screen and (max-width: 1100px){
+  .course-content-page{
+   flex-direction: column;
+  }
+
+  .content-list{
+    width: 50%;
+  }
+
+  .video-player{
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media screen and (max-width: 600px){
+  .content-list{
+    width: 100%;
+    transition: all ease-in 1s;
+  }
+}
+
+.custom-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.custom-controls button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.custom-controls button:hover {
+  background-color: #4e759f;
+}
+
+.custom-controls input[type="range"] {
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.content-list li.active {
+  background-color: #799dbb; 
+  font-weight: bold;
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.content-list > h3{
+  padding: 0px 0px 20px 0px;
+  text-decoration: underline;
+  font-size: 1.5rem;
+}
+
+.download-certificate{
+  padding: 5px;
+  margin-bottom: 5px;
+  background-color: #29771a;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.download-certificate:hover{
+  background-color: #055d08;
+  box-shadow: 0px 0px 5px 0px #959895;
+}
