@@ -1,13 +1,35 @@
 import React, { useEffect, useState } from "react";
-import "../instructor/dashboard.css";
 import axiosInstance from "../../axiosconfig";
 import Navbar from "../Home/NavBar";
+import Footer from "../Home/Footer.js";
+import {
+  Container,
+  Typography,
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from "@mui/material";
+import { Edit, Delete, Add, Category } from "@mui/icons-material";
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [editId, setEditId] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -22,18 +44,31 @@ const CategoryManagement = () => {
     }
   };
 
+  const handleOpenDialog = (category = null) => {
+      if(category) {
+          setName(category.name);
+          setDescription(category.description);
+          setEditId(category.category_id);
+      } else {
+          setName("");
+          setDescription("");
+          setEditId(null);
+      }
+      setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+      setOpenDialog(false);
+      resetForm();
+  };
+
   const handleAddOrUpdateCategory = async (e) => {
     e.preventDefault();
     const categoryData = { name, description };
 
     try {
-        // Fetch the token from localStorage (if not already done in the axios instance config)
         const token = JSON.parse(localStorage.getItem("auth"))?.token;
-        
-        // Include Authorization header with Bearer token
-        const headers = {
-            Authorization: `Bearer ${token}`,
-        };
+        const headers = { Authorization: `Bearer ${token}` };
 
         if (editId) {
             await axiosInstance.put(`/categories/${editId}`, categoryData, { headers });
@@ -42,20 +77,14 @@ const CategoryManagement = () => {
         }
 
         fetchCategories();
-        resetForm();
+        handleCloseDialog();
     } catch (error) {
         console.error("Error saving category:", error);
     }
-};
-
-
-  const handleEditCategory = (category) => {
-    setName(category.name);
-    setDescription(category.description);
-    setEditId(category.category_id);
   };
 
   const handleDeleteCategory = async (id) => {
+    if(!window.confirm("Are you sure?")) return;
     try {
       await axiosInstance.delete(`/categories/${id}`);
       fetchCategories();
@@ -71,50 +100,117 @@ const CategoryManagement = () => {
   };
 
   return (
-    <>
-    <Navbar />
-      <div className="category-management">
-        <h2>Category Management</h2>
-        <form onSubmit={handleAddOrUpdateCategory}>
-          <input
-            type="text"
-            placeholder="Category Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-          <button type="submit">
-            {editId ? "Update Category" : "Add Category"}
-          </button>
-        </form>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
+      <Navbar />
+      
+      <Box sx={{ bgcolor: '#0F172A', py: 4, color: 'white', mb: 4 }}>
+          <Container maxWidth="lg">
+              <Typography variant="h4" fontWeight="bold" fontFamily="Inter" gutterBottom>
+                  Category Management
+              </Typography>
+              <Typography variant="subtitle1" sx={{ opacity: 0.8 }}>
+                  Create and manage course categories.
+              </Typography>
+          </Container>
+      </Box>
 
-        <h3>Categories List</h3>
-        <ul>
-          {categories.map((category) => (
-            <li key={category.category_id}>
-              <span>{category.name}</span>
-              <span>{category.description}</span>
-              <div>
-                <button onClick={() => handleEditCategory(category)}>
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCategory(category.category_id)}
+      <Container maxWidth="lg" sx={{ flexGrow: 1, mb: 4 }}>
+        <Paper elevation={0} sx={{ p: 3, borderRadius: 2, border: '1px solid #E2E8F0' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Typography variant="h6" fontWeight="600" fontFamily="Inter">
+                    Existing Categories
+                </Typography>
+                <Button 
+                    variant="contained" 
+                    startIcon={<Add />} 
+                    onClick={() => handleOpenDialog()}
+                    sx={{ bgcolor: '#0F172A' }}
                 >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </>
+                    Add Category
+                </Button>
+            </Box>
+
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {categories.map((category) => (
+                            <TableRow key={category.category_id} hover>
+                                <TableCell>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        <Category fontSize="small" color="action" />
+                                        <Typography variant="body2" fontWeight="500">{category.name}</Typography>
+                                    </Box>
+                                </TableCell>
+                                <TableCell>{category.description}</TableCell>
+                                <TableCell align="right">
+                                    <IconButton size="small" onClick={() => handleOpenDialog(category)} sx={{ mr: 1 }}>
+                                        <Edit fontSize="small" />
+                                    </IconButton>
+                                    <IconButton size="small" onClick={() => handleDeleteCategory(category.category_id)} color="error">
+                                        <Delete fontSize="small" />
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {categories.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
+                                    No categories found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Paper>
+      </Container>
+      
+      <Footer />
+
+      {/* Dialog for Add/Edit */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 'bold', fontFamily: 'Inter' }}>
+              {editId ? "Edit Category" : "Add New Category"}
+          </DialogTitle>
+          <DialogContent>
+              <Box component="form" sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                      label="Category Name"
+                      fullWidth
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                  />
+                  <TextField
+                      label="Description"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      required
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                  />
+              </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+              <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+              <Button 
+                onClick={handleAddOrUpdateCategory} 
+                variant="contained" 
+                sx={{ bgcolor: '#0F172A' }}
+              >
+                  {editId ? "Update" : "Add"}
+              </Button>
+          </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

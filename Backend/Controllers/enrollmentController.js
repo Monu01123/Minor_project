@@ -29,6 +29,15 @@ export const enrollUserInCourse = async (req, res) => {
   }
 };
 
+const appendSasToken = (url) => {
+    if (!url) return url;
+    if (url.includes("blob.core.windows.net")) {
+         const baseUrl = url.split("?")[0];
+         return `${baseUrl}?${process.env.SAS_TOKEN}`;
+    }
+    return url;
+};
+
 export const getEnrollmentsByUserId = async (req, res) => {
   const { userId } = req.params;
 
@@ -41,11 +50,17 @@ export const getEnrollmentsByUserId = async (req, res) => {
       [userId]
     );
 
-    // if (rows.length === 0) {
-    //   return res.status(404).json({ message: 'No enrollments found for this user' });
-    // }
+    const updatedRows = rows.map(row => {
+        const originalUrl = row.image_url;
+        const newUrl = appendSasToken(row.image_url);
+        console.log(`[Enrollment] Course: ${row.title}, Original URL: ${originalUrl}, SAS Token: ${process.env.SAS_TOKEN ? 'Present' : 'MISSING'}, New URL: ${newUrl}`);
+        return {
+            ...row,
+            image_url: newUrl
+        };
+    });
 
-    res.json(rows);
+    res.json(updatedRows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching enrollments' });

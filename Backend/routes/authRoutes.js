@@ -1,4 +1,6 @@
 import express from "express";
+import { promisePool } from "../db.js";
+import logger from "../utils/logger.js";
 import { body, validationResult } from "express-validator";
 import {
   createUser,
@@ -15,7 +17,7 @@ import {
   hashPassword,
   updatePassword,
 } from "../Controllers/userController.js";
-import { promisePool } from "../db.js";
+
 
 const router = express.Router();
 
@@ -149,7 +151,7 @@ router.post(
       await resetPassword(email, token, newPassword);
       res.status(200).json({ message: "Password reset successful" });
     } catch (err) {
-      console.error(err);
+      logger.error("Error in reset password", err);
       res.status(400).json({ message: err.message });
     }
   }
@@ -167,39 +169,31 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log("Validation Errors:", errors.array()); // Log validation errors
       return res.status(400).json({ errors: errors.array() });
     }
 
     const { email, oldPassword, newPassword } = req.body;
-    console.log("Request Body:", req.body); // Log full request body
-    console.log("Extracted Email:", email); // Log extracted email
-    console.log("Old Password:", oldPassword); // Log old password
-    console.log("New Password:", newPassword); // Log new password
+    // logger.info("Request Body:", req.body); // Avoid logging sensitive data in production
+    // logger.info("Extracted Email:", email);
 
     try {
-      const user = await findUserByEmail(email);
-      console.log("User Found:", user);  // Log the found user
-
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       const isOldPasswordValid = await verifyPassword(oldPassword, user.password_hash);
-      console.log("Is Old Password Valid:", isOldPasswordValid);  // Log password verification result
 
       if (!isOldPasswordValid) {
         return res.status(401).json({ message: "Old password is incorrect" });
       }
 
       const hashedNewPassword = await hashPassword(newPassword);
-      console.log("Hashed New Password:", hashedNewPassword);  // Log the new hashed password
 
       await updatePassword(user.user_id, hashedNewPassword);
 
       res.json({ message: "Password changed successfully" });
     } catch (err) {
-      console.error("Error:", err); // Log the error
+      logger.error("Error changing password", err); // Log the error
       res.status(500).send("Server Error");
     }
   }
@@ -223,7 +217,7 @@ router.put("/profile", authenticateToken, async (req, res) => {
     await updateUserProfile(userId, updatedProfile);
     res.status(200).json({ message: "Profile updated successfully" });
   } catch (error) {
-    console.error(error);
+    logger.error("Error updating profile", error);
     res.status(500).send("Server Error");
   }
 });
@@ -254,7 +248,7 @@ router.post("/become-instructor", authenticateToken, async (req, res) => {
 
     res.status(200).json({ message: "You are now an instructor!" });
   } catch (error) {
-    console.error(error);
+    logger.error("Error becoming instructor", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
@@ -298,7 +292,7 @@ router.post(
 
       res.status(200).json({ message: "Email verified successfully" });
     } catch (err) {
-      console.error(err);
+      logger.error("Error verifying OTP", err);
       res.status(500).send("Server Error");
     }
   }

@@ -1,18 +1,47 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../axiosconfig.js";
 import { useAuth } from "../../Context/auth.js";
-import "./dashboard.css";
-import GradeIcon from "@mui/icons-material/Grade";
 import Navbar from "../Home/NavBar.js";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import Footer from "../Home/Footer.js";
+import {
+  Container,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActions,
+  Typography,
+  Button,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  IconButton,
+  Chip,
+  Tooltip,
+  Fab,
+  CircularProgress
+} from "@mui/material";
+import {
+  Add,
+  Edit,
+  Delete,
+  RateReview,
+  VideoLibrary,
+  CloudUpload,
+  School
+} from "@mui/icons-material";
 
 const InstructorDashboard = () => {
   const [auth] = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
   const [newCourse, setNewCourse] = useState({
     title: "",
     description: "",
@@ -25,7 +54,7 @@ const InstructorDashboard = () => {
   });
   const [editingCourse, setEditingCourse] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [categories, setCategories] = useState([]);
   const instructorId = auth?.user?.user_id;
 
@@ -34,16 +63,19 @@ const InstructorDashboard = () => {
       fetchCourses();
       fetchCategories();
     }
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth, instructorId]);
 
   const fetchCourses = () => {
+    setLoading(true);
     axiosInstance
       .get(`/api/courses/instructor/${instructorId}`)
       .then((response) => setCourses(response.data || []))
       .catch((error) => {
         console.error("Error fetching courses:", error);
-        setCourses([]); // Ensure courses is always an array on error
-      });
+        setCourses([]);
+      })
+      .finally(() => setLoading(false));
   };
 
   const fetchCategories = () => {
@@ -58,70 +90,30 @@ const InstructorDashboard = () => {
     setNewCourse({ ...newCourse, [name]: value });
   };
 
-  const createCourse = (e) => {
-    e.preventDefault();
-    axiosInstance
-      .post("/api/courses", { ...newCourse, instructor_id: instructorId })
-      .then((response) => {
-        if (response.data && response.data.course_id) {
-          setCourses((prevCourses) => [...prevCourses, response.data]);
-        }
-        setNewCourse({
-          title: "",
-          description: "",
-          price: "",
-          discount_price: "",
-          image_url: "",
-          category_id: "",
-          level: "",
-          language: "",
-        });
-        fetchCourses();
-      })
-      .catch((error) => console.error("Error creating course:", error));
-  };
-
-  const editCourse = (course) => {
-    setEditingCourse(course);
-    setNewCourse(course);
-  };
-
-  const updateCourse = (e) => {
-    e.preventDefault();
-    axiosInstance
-      .put(`/api/courses/${editingCourse.course_id}`, newCourse)
-      .then((response) => {
-        const updatedCourses = courses.map((c) =>
-          c.course_id === editingCourse.course_id ? { ...c, ...newCourse } : c
-        );
-        setCourses(updatedCourses);
-        setEditingCourse(null);
-        setNewCourse({
-          title: "",
-          description: "",
-          price: "",
-          discount_price: "",
-          image_url: "",
-          category_id: "",
-          level: "",
-          language: "",
-        });
-      })
-      .catch((error) => console.error("Error updating course:", error));
-  };
-
-  const deleteCourse = async (courseId) => {
-    try {
-      await axiosInstance.delete(`/api/courses/${courseId}`, {
-        data: { instructor_id: instructorId },
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
+  const handleOpenDialog = (course = null) => {
+    if (course) {
+      setEditingCourse(course);
+      setNewCourse(course);
+    } else {
+      setEditingCourse(null);
+      setNewCourse({
+        title: "",
+        description: "",
+        price: "",
+        discount_price: "",
+        image_url: "",
+        category_id: "",
+        level: "",
+        language: "",
       });
-      setCourses(courses.filter((course) => course.course_id !== courseId));
-    } catch (error) {
-      console.error("Error deleting course:", error);
     }
+    setImageFile(null);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingCourse(null);
   };
 
   const handleFileChange = (event) => {
@@ -129,6 +121,8 @@ const InstructorDashboard = () => {
   };
 
   const handleUpload = async () => {
+    if (!imageFile) return;
+    setUploadingImage(true);
     const formData = new FormData();
     formData.append("image", imageFile);
 
@@ -139,229 +133,317 @@ const InstructorDashboard = () => {
         },
       });
       const uploadedImageUrl = response.data.imageUrl;
-      setImageUrl(uploadedImageUrl);
-      setNewCourse((prevCourse) => ({
-        ...prevCourse,
-        image_url: uploadedImageUrl,
-      }));
+      setNewCourse((prev) => ({ ...prev, image_url: uploadedImageUrl }));
     } catch (error) {
       console.error("Error uploading image:", error);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editingCourse) {
+      updateCourse();
+    } else {
+      createCourse();
+    }
+  };
+
+  const createCourse = () => {
+    axiosInstance
+      .post("/api/courses", { ...newCourse, instructor_id: instructorId })
+      .then((response) => {
+        if (response.data && response.data.course_id) {
+          fetchCourses();
+        }
+        handleCloseDialog();
+      })
+      .catch((error) => console.error("Error creating course:", error));
+  };
+
+  const updateCourse = () => {
+    axiosInstance
+      .put(`/api/courses/${editingCourse.course_id}`, newCourse)
+      .then(() => {
+        fetchCourses();
+        handleCloseDialog();
+      })
+      .catch((error) => console.error("Error updating course:", error));
+  };
+
+  const deleteCourse = async (courseId) => {
+    if (!window.confirm("Are you sure you want to delete this course?")) return;
+    try {
+      await axiosInstance.delete(`/api/courses/${courseId}`, {
+        data: { instructor_id: instructorId },
+      });
+      setCourses(courses.filter((course) => course.course_id !== courseId));
+    } catch (error) {
+      console.error("Error deleting course:", error);
+    }
+  };
+
+  if (loading) return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CircularProgress />
+      </Box>
+  );
+
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#F8FAFC' }}>
       <Navbar />
-      <div className="instructor-dashboard">
-        <h1 className="instructor-dashboard-heading">Your Courses</h1>
-        <div className="">
+      
+      {/* Header Section */}
+      <Box sx={{ 
+        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', 
+        py: 6, 
+        color: 'white',
+        mb: 4 
+      }}>
+        <Container maxWidth="xl">
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box>
+                    <Typography variant="h3" fontWeight="800" fontFamily="Inter" gutterBottom>
+                        Instructor Dashboard
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ opacity: 0.8, fontFamily: "Inter" }}>
+                        Manage your courses, content, and student reviews.
+                    </Typography>
+                </Box>
+                <Button 
+                    variant="contained" 
+                    startIcon={<Add />} 
+                    onClick={() => handleOpenDialog()}
+                    sx={{ 
+                        bgcolor: '#A435F0', 
+                        fontFamily: "Inter", 
+                        fontWeight: 600,
+                        px: 3,
+                        py: 1.5,
+                        '&:hover': { bgcolor: '#8710D8' }
+                    }}
+                >
+                    Create New Course
+                </Button>
+            </Box>
+        </Container>
+      </Box>
+
+      <Container maxWidth="xl" sx={{ flexGrow: 1, mb: 8 }}>
           {courses.length === 0 ? (
-            <div className="manage-no-course">
-              <h4>No courses found</h4>
-            </div>
+             <Box sx={{ textAlign: 'center', py: 8 }}>
+                 <Typography variant="h5" color="text.secondary">No courses found. Create your first course!</Typography>
+             </Box>
           ) : (
-            <div className="instructor-course-card-list">
-              {Array.isArray(courses) &&
-                courses.map((course) => (
-                  <div
-                    className="instructor-course-card"
-                    key={course.course_id}
-                  >
-                    <img
-                      src={course.image_url}
-                      alt={course.title}
-                      className="course-image"
-                    />
-                    <div className="instructor-card-items">
-                      <span className="title">
-                        <strong>
-                          {course?.title?.length > 18
-                            ? `${course.title.substring(0, 18)}...`
-                            : course?.title || ""}
-                        </strong>
-                        <button
-                          className="instructor-course-edit-btn"
-                          onClick={() => editCourse(course)}
-                        >
-                          <EditOutlinedIcon className="editbtn" />
-                        </button>
-                      </span>
-                      <div className="instructor-course-details">
-                        <strong className="rating">
-                          {course.average_rating !== undefined &&
-                          !isNaN(Number(course.average_rating))
-                            ? Number(course.average_rating) === 0
-                              ? 0
-                              : Number(course.average_rating).toFixed(1)
-                            : "N/A"}
-                          <GradeIcon sx={{ color: "orange", fontSize: 20 }} />
-                        </strong>
-                        <span>{course.level}</span>
-                        <span>{course.language}</span>
-                      </div>
-                      <div className="instructor-courses-btns">
-                        <button
-                          className="instructor-course-delete-btn"
-                          onClick={() => deleteCourse(course.course_id)}
-                        >
-                          <DeleteOutlineOutlinedIcon />
-                        </button>
-                        <button
-                          className="instructor-course-other-btn"
-                          onClick={() =>
-                            navigate(
-                              `/instructor/${instructorId}/course/${course.course_id}/reviews`,
-                              {
-                                state: { courseTitle: course.title },
-                              }
-                            )
-                          }
-                        >
-                          Reviews
-                        </button>
-
-                        <button
-                          className="instructor-course-other-btn"
-                          onClick={() =>
-                            navigate(
-                              `/instructor/course/${course.course_id}/content`,
-                              {
-                                state: { courseName: course.title },
-                              }
-                            )
-                          }
-                        >
-                          Manage Content
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
+            <Grid container spacing={4}>
+              {courses.map((course) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={course.course_id}>
+                   <Card sx={{ 
+                       height: '100%', 
+                       display: 'flex', 
+                       flexDirection: 'column',
+                       borderRadius: 3,
+                       boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                       transition: 'transform 0.2s',
+                       '&:hover': { transform: 'translateY(-5px)' }
+                   }}>
+                      <Box sx={{ position: 'relative' }}>
+                          <CardMedia
+                            component="img"
+                            height="180"
+                            image={course.image_url || "https://source.unsplash.com/random?coding"}
+                            alt={course.title}
+                          />
+                          <Box sx={{ position: 'absolute', top: 10, right: 10 }}>
+                              <Chip label={course.level} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', fontWeight: 'bold' }} />
+                          </Box>
+                      </Box>
+                      <CardContent sx={{ flexGrow: 1 }}>
+                          <Typography variant="h6" fontWeight="bold" fontFamily="Inter" gutterBottom noWrap>
+                              {course.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" fontFamily="Inter" sx={{ mb: 1 }}>
+                              Price: {course.discount_price ? (
+                                  <>
+                                    <span style={{ textDecoration: 'line-through', marginRight: 8 }}>₹{course.price}</span>
+                                    <span style={{ color: '#10B981', fontWeight: 'bold' }}>₹{course.discount_price}</span>
+                                  </>
+                              ) : `₹${course.price}`}
+                          </Typography>
+                          <Box display="flex" gap={1} mb={2}>
+                              <Chip label={course.language} size="small" variant="outlined" />
+                              <Chip label={`${course.average_rating || 0} ★`} size="small" color="warning" variant="outlined" />
+                          </Box>
+                      </CardContent>
+                      <CardActions sx={{ p: 2, pt: 0, justifyContent: 'space-between', borderTop: '1px solid #F1F5F9' }}>
+                          <Box>
+                              <Tooltip title="Manage Content">
+                                  <IconButton onClick={() => navigate(`/instructor/course/${course.course_id}/content`, { state: { courseName: course.title } })}>
+                                      <VideoLibrary color="primary" />
+                                  </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Reviews">
+                                  <IconButton onClick={() => navigate(`/instructor/${instructorId}/course/${course.course_id}/reviews`, { state: { courseTitle: course.title } })}>
+                                      <RateReview color="action" />
+                                  </IconButton>
+                              </Tooltip>
+                          </Box>
+                          <Box>
+                              <Tooltip title="Edit Course">
+                                  <IconButton onClick={() => handleOpenDialog(course)}>
+                                      <Edit />
+                                  </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete Course">
+                                  <IconButton onClick={() => deleteCourse(course.course_id)} color="error">
+                                      <Delete />
+                                  </IconButton>
+                              </Tooltip>
+                          </Box>
+                      </CardActions>
+                   </Card>
+                </Grid>
+              ))}
+            </Grid>
           )}
-        </div>
-
-        <div className="instructor-course-edit">
-          <h2>{editingCourse ? "Edit Course" : "Create New Course"}</h2>
-          <form
-            className=""
-            onSubmit={editingCourse ? updateCourse : createCourse}
-          >
-            <div className="">
-              <label htmlFor="title">Title</label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={newCourse.title}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={newCourse.description}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="">
-              <label htmlFor="price">Price</label>
-              <input
-                type="number"
-                id="price"
-                name="price"
-                value={newCourse.price}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="">
-              <label htmlFor="discount_price">Discount Price</label>
-              <input
-                type="number"
-                id="discount_price"
-                name="discount_price"
-                value={newCourse.discount_price}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="image-upload-courses-instructor">
-              <input type="file" onChange={handleFileChange} accept="image/*" />
-              <button onClick={handleUpload}>Upload Image</button>
-              {imageUrl && (
-                <div>
-                  <h2>Uploaded Image:</h2>
-                  <img src={imageUrl} alt="Uploaded" width="300" />
-                </div>
-              )}
-            </div>
-            <div className="">
-              <label htmlFor="category_id">Category</label>
-              <select
-                id="category_id"
-                name="category_id"
-                value={newCourse.category_id}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  Select a category
-                </option>
-                {categories.map((category) => (
-                  <option
-                    key={category.category_id}
-                    value={category.category_id}
-                  >
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="">
-              <label htmlFor="level">Level</label>
-              <select
-                id="level"
-                name="level"
-                value={newCourse.level}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  Select a level
-                </option>
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </div>
-            <div className="">
-              <label htmlFor="language">Language</label>
-              <select
-                id="language"
-                name="language"
-                value={newCourse.language}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  Select a language
-                </option>
-                <option value="English">English</option>
-                <option value="Hindi">Hindi</option>
-              </select>
-            </div>
-            <button type="submit">
-              {editingCourse ? "Update Course" : "Create Course"}
-            </button>
-          </form>
-        </div>
-      </div>
+      </Container>
       <Footer />
-    </>
+
+      {/* Create/Edit Course Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontFamily: 'Inter', fontWeight: 700 }}>
+              {editingCourse ? "Edit Course" : "Create New Course"}
+          </DialogTitle>
+          <DialogContent dividers>
+              <Box component="form" sx={{ mt: 1 }}>
+                  <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                          <TextField
+                              name="title"
+                              label="Course Title"
+                              fullWidth
+                              required
+                              value={newCourse.title}
+                              onChange={handleChange}
+                          />
+                      </Grid>
+                      <Grid item xs={12}>
+                          <TextField
+                              name="description"
+                              label="Description"
+                              fullWidth
+                              multiline
+                              rows={4}
+                              required
+                              value={newCourse.description}
+                              onChange={handleChange}
+                          />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                          <TextField
+                              name="price"
+                              label="Price (₹)"
+                              type="number"
+                              fullWidth
+                              required
+                              value={newCourse.price}
+                              onChange={handleChange}
+                          />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                          <TextField
+                              name="discount_price"
+                              label="Discount Price (₹)"
+                              type="number"
+                              fullWidth
+                              value={newCourse.discount_price}
+                              onChange={handleChange}
+                          />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                          <TextField
+                              select
+                              name="category_id"
+                              label="Category"
+                              fullWidth
+                              required
+                              value={newCourse.category_id}
+                              onChange={handleChange}
+                          >
+                              {categories.map((cat) => (
+                                  <MenuItem key={cat.category_id} value={cat.category_id}>
+                                      {cat.name}
+                                  </MenuItem>
+                              ))}
+                          </TextField>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                          <TextField
+                              select
+                              name="level"
+                              label="Level"
+                              fullWidth
+                              required
+                              value={newCourse.level}
+                              onChange={handleChange}
+                          >
+                            <MenuItem value="beginner">Beginner</MenuItem>
+                            <MenuItem value="intermediate">Intermediate</MenuItem>
+                            <MenuItem value="advanced">Advanced</MenuItem>
+                          </TextField>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                          <TextField
+                              select
+                              name="language"
+                              label="Language"
+                              fullWidth
+                              required
+                              value={newCourse.language}
+                              onChange={handleChange}
+                          >
+                            <MenuItem value="English">English</MenuItem>
+                            <MenuItem value="Hindi">Hindi</MenuItem>
+                            <MenuItem value="Spanish">Spanish</MenuItem>
+                          </TextField>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                          <Box display="flex" alignItems="center" gap={2}>
+                              <Button
+                                  variant="outlined"
+                                  component="label"
+                                  startIcon={<CloudUpload />}
+                              >
+                                  Upload Information Image
+                                  <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                              </Button>
+                              <Button 
+                                  onClick={handleUpload} 
+                                  disabled={!imageFile || uploadingImage} 
+                                  variant="contained" 
+                                  size="small"
+                              >
+                                  {uploadingImage ? "Uploading..." : "Upload"}
+                              </Button>
+                          </Box>
+                          {newCourse.image_url && (
+                              <Typography variant="caption" display="block" sx={{ mt: 1, color: 'green' }}>
+                                  Image uploaded successfully
+                              </Typography>
+                          )}
+                      </Grid>
+                  </Grid>
+              </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+              <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+              <Button onClick={handleSubmit} variant="contained" sx={{ bgcolor: '#A435F0', '&:hover': { bgcolor: '#8710D8' } }}>
+                  {editingCourse ? "Update Course" : "Create Course"}
+              </Button>
+          </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

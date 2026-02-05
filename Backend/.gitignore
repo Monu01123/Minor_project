@@ -37,6 +37,13 @@ bower_components/
 *.db
 
 # Local environment variables
+node_modules/
+.env
+dist/
+build/
+.vscode/
+.idea/
+
 .env.local
 .env.development.local
 .env.test.local

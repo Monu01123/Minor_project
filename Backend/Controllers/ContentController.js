@@ -46,6 +46,15 @@ export const addCourseContent = async (req, res) => {
   }
 };
 
+const appendSasToken = (url) => {
+    if (!url) return url;
+    if (url.includes("blob.core.windows.net")) {
+         const baseUrl = url.split("?")[0];
+         return `${baseUrl}?${process.env.SAS_TOKEN}`;
+    }
+    return url;
+};
+
 export const getCourseContentByCourseId = async (req, res) => {
   const { courseId } = req.params;
 
@@ -55,7 +64,12 @@ export const getCourseContentByCourseId = async (req, res) => {
       [courseId]
     );
 
-    res.status(200).json(rows.length > 0 ? rows : []);
+    const updatedRows = rows.map(row => ({
+        ...row,
+        content_url: appendSasToken(row.content_url)
+    }));
+
+    res.status(200).json(updatedRows.length > 0 ? updatedRows : []);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching course content' });
@@ -92,17 +106,24 @@ export const getCourseContentByCourseIdsecure = async (req, res) => {
             [userId, courseId]
         );
 
+        // Check if the user is the instructor of the course
+        const [course] = await promisePool.query(
+            `SELECT instructor_id FROM courses WHERE course_id = ?`,
+            [courseId]
+        );
+        const isInstructor = course.length > 0 && course[0].instructor_id === userId;
+
         // Fetch the course content
         const [courseContentRows] = await promisePool.query(
             `SELECT content_id, title, content_url FROM course_content WHERE course_id = ? ORDER BY content_order`,
             [courseId]
         );
 
-        // Prepare the response based on enrollment status
+        // Prepare the response based on enrollment status or instructor ownership
         const responseContent = courseContentRows.map(content => ({
             content_id: content.content_id,
             title: content.title,
-            content_url: enrollment.length > 0 ? content.content_url : null,  // Show URL only if enrolled
+            content_url: (enrollment.length > 0 || isInstructor) ? appendSasToken(content.content_url) : null,  // Show URL if enrolled or is instructor
         }));
 
         return res.status(200).json(responseContent);

@@ -2,7 +2,7 @@ import { promisePool } from '../db.js';
 
 export const enrolledUserOnly = async (req, res, next) => {
   try {
-    const userId = req.user.id; 
+    const userId = req.user.user_id; 
     const courseId = req.params.courseId || null; 
     if (!courseId) {
       console.log(`Fetching all courses for User ID: ${userId}`);

@@ -1,5 +1,14 @@
 import { promisePool } from '../db.js'; 
 
+const appendSasToken = (url) => {
+    if (!url) return url;
+    if (url.includes("blob.core.windows.net")) {
+         const baseUrl = url.split("?")[0];
+         return `${baseUrl}?${process.env.SAS_TOKEN}`;
+    }
+    return url;
+}; 
+
 export const addToWishlist = async (req, res) => {
   const { user_id, course_id } = req.body;
 
@@ -52,7 +61,12 @@ export const getWishlistByUserId = async (req, res) => {
     //   return res.status(404).json({ message: 'No items found in wishlist for this user' });
     // }
 
-    res.json(wishlistItems);
+    const updatedWishlistItems = wishlistItems.map(item => ({
+        ...item,
+        image_url: appendSasToken(item.image_url)
+    }));
+
+    res.json(updatedWishlistItems);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching wishlist items' });
