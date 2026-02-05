@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkclient=self.webpackChunkclient||[]).push([[433],{5433:(e,t,r)=>{r.r(t),r.d(t,{default:()=>n});r(5043);var s=r(3216),l=r(579);const n=e=>{let{children:t}=e;const r=JSON.parse(localStorage.getItem("auth"));return r&&r.token?"instructor"!==r.user.role&&"admin"!==r.user.role?(0,l.jsx)(s.C5,{to:"/"}):t:(0,l.jsx)(s.C5,{to:"/login"})}}}]);
+//# sourceMappingURL=433.79d2d149.chunk.js.map

@@ -7,7 +7,7 @@ import {
   getCourseContentByCourseIdsecure,
 } from "../Controllers/ContentController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
-import { instructorOnly } from "../middleware/InstructorMiddleware.js"; // Middleware for instructors
+import { instructorOnly } from "../middleware/instructorMiddleware.js"; // Middleware for instructors
 // import { adminOnly } from '../middleware/adminMiddleware.js';           // Middleware for admins
 
 const router = express.Router();

@@ -1,0 +1,103 @@
+/* dashboard.css */
+
+.dash-container {
+  display: flex;
+  height: 60vh;
+}
+
+.dash-course-list {
+  flex: 1;
+  max-width: 300px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.dash-course-list h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+  text-align: center;
+}
+
+.dash-course-list {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #555;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dash-course-item {
+  padding: 8px;
+  margin: 5px;
+}
+
+.dash-course-item:hover {
+  background-color: #f0f0f0;
+}
+
+.dash-course-item.active {
+  background-color: #0a6071;
+  color: white;
+}
+
+.dash-course-itemin {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.dash-course-details {
+  flex: 2;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-course-details h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: white;
+  background-color: black;
+  padding: 40px 20px;
+}
+
+.dash-course-details p {
+  font-size: 1.2rem;
+  margin: 0.3rem 0;
+  color: white;
+  background-color: black;
+  padding: 40px 20px;
+}
+
+.total-earnings {
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  color: #4a90e2;
+}
+
+@media screen and (max-width: 800px) {
+  .dash-course-itemin {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .dash-course-details p {
+    padding: 20px 10px;
+  }
+
+  .dash-container{
+    flex-direction: column;
+    align-items: center;
+  }
+
+}

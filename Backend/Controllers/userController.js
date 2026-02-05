@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import { promisePool } from "../db.js"; 
 import jwt from "jsonwebtoken";

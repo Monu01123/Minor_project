@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkclient=self.webpackChunkclient||[]).push([[777],{2777:(e,t,l)=>{l.r(t),l.d(t,{default:()=>s});l(5043);var n=l(3216),c=l(579);const s=e=>{let{children:t}=e;const l=JSON.parse(localStorage.getItem("auth"));return l&&l.token?t:(0,c.jsx)(n.C5,{to:"/login"})}}}]);
+//# sourceMappingURL=777.dfdd5096.chunk.js.map

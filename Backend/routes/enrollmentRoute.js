@@ -7,7 +7,7 @@ import {
   getEnrollmentCountByCourseId
 } from '../Controllers/enrollmentController.js';
 import { authenticateToken } from '../middleware/authenticateToken.js';  
-import { adminOnly } from '../middleware/adminMiddleware.js';            
+// import { adminOnly } from '../middleware/adminMiddleware.js';            
 import { enrolledUserOnly } from '../middleware/enrolledUserMiddleware.js'; 
 
 const router = express.Router();

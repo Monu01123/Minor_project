@@ -9,16 +9,16 @@ const blobServiceClient = new BlobServiceClient(
   `https://${accountName}.blob.core.windows.net?${sasToken}`
 );
 
-export async function uploadVideo(filePath) {
-  const containerClient = blobServiceClient.getContainerClient(containerName);
-  const blobName = path.basename(filePath);
-  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+// export async function uploadVideo(filePath) {
+//   const containerClient = blobServiceClient.getContainerClient(containerName);
+//   const blobName = path.basename(filePath);
+//   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-  const uploadBlobResponse = await blockBlobClient.uploadFile(filePath);
-  console.log(`Uploaded video ${blobName} successfully`, uploadBlobResponse.requestId);
+//   const uploadBlobResponse = await blockBlobClient.uploadFile(filePath);
+//   console.log(`Uploaded video ${blobName} successfully`, uploadBlobResponse.requestId);
 
-  return blockBlobClient.url;
-}
+//   return blockBlobClient.url;
+// }
 
 // Upload image
 export async function uploadImage(filePath) {
